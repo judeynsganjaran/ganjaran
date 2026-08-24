@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kumpulan 👨‍👩‍👧‍👦</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/index.html" class="brand">🌈 Ganjaran BM</a>
+  <div class="breadcrumbs">
+    <a href="/leaderboard.html">🏆 Leaderboard</a>
+    <a href="/kumpulan.html" class="active">👨‍👩‍👧‍👦 Kumpulan</a>
+    <a href="/kelas.html">🏫 Pengurusan Kelas</a>
+    <a href="/spin.html">🎡 Spin Wheel</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1 class="page-title">👨‍👩‍👧‍👦 Kumpulan Murid</h1>
+  <p class="page-subtitle">Pilih kelas dahulu, kemudian cipta kumpulan untuk murid-murid anda</p>
+
+  <div class="class-selector" id="classSelector"></div>
+
+  <div id="groupSection" style="display:none;">
+    <button class="btn btn-primary" onclick="openGroupModal()">➕ Cipta Kumpulan Baru</button>
+    <div class="grid" id="groupGrid" style="margin-top:22px;"></div>
+  </div>
+</div>
+
+<!-- MODAL: CIPTA / SUNTING KUMPULAN -->
+<div class="modal-overlay" id="groupModal">
+  <div class="modal-box">
+    <h3 id="groupModalTitle">Cipta Kumpulan Baru 👨‍👩‍👧‍👦</h3>
+    <div class="form-group">
+      <label>Nama Kumpulan</label>
+      <input type="text" id="groupNameInput" placeholder="Contoh: Kumpulan Bintang">
+    </div>
+    <div class="form-group">
+      <label>Pilih Murid</label>
+      <div class="checkbox-list" id="studentCheckList"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('groupModal')">Batal</button>
+      <button class="btn btn-primary" onclick="saveGroup()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/kumpulan.js"></script>
+</body>
+</html>

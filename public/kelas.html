@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pengurusan Kelas 🏫</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/index.html" class="brand">🌈 Ganjaran BM</a>
+  <div class="breadcrumbs">
+    <a href="/leaderboard.html">🏆 Leaderboard</a>
+    <a href="/kumpulan.html">👨‍👩‍👧‍👦 Kumpulan</a>
+    <a href="/kelas.html" class="active">🏫 Pengurusan Kelas</a>
+    <a href="/spin.html">🎡 Spin Wheel</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- ===== VIEW: SENARAI KELAS ===== -->
+  <div id="viewKelasList">
+    <h1 class="page-title">🏫 Pengurusan Kelas</h1>
+    <p class="page-subtitle">Urus kelas dan senarai murid anda</p>
+    <button class="btn btn-primary" onclick="openClassModal()">➕ Cipta Kelas Baru</button>
+    <div class="grid" id="classGrid" style="margin-top:22px;"></div>
+  </div>
+
+  <!-- ===== VIEW: DETAIL KELAS (MURID) ===== -->
+  <div id="viewClassDetail" style="display:none;">
+    <button class="btn btn-outline btn-sm" onclick="backToClassList()">⬅ Kembali ke Senarai Kelas</button>
+    <h1 class="page-title" id="detailClassName" style="margin-top:14px;"></h1>
+    <p class="page-subtitle">Urus murid dalam kelas ini — tambah gambar & gambar khas spin wheel</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 10px;">
+      <button class="btn btn-success" onclick="openStudentModal()">➕ Tambah Murid</button>
+      <button class="btn btn-outline" onclick="openEditClassModal()">✏️ Sunting Nama Kelas</button>
+    </div>
+    <div class="grid" id="studentGrid" style="margin-top:22px;"></div>
+  </div>
+
+</div>
+
+<!-- MODAL: CIPTA / SUNTING KELAS -->
+<div class="modal-overlay" id="classModal">
+  <div class="modal-box">
+    <h3 id="classModalTitle">Cipta Kelas Baru 🏫</h3>
+    <div class="form-group">
+      <label>Nama Kelas</label>
+      <input type="text" id="classNameInput" placeholder="Contoh: Prasekolah Ceria A">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('classModal')">Batal</button>
+      <button class="btn btn-primary" id="classModalSaveBtn" onclick="saveClass()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TAMBAH / SUNTING MURID -->
+<div class="modal-overlay" id="studentModal">
+  <div class="modal-box">
+    <h3 id="studentModalTitle">Tambah Murid ➕</h3>
+    <div class="form-group">
+      <label>Nama Murid</label>
+      <input type="text" id="studentNameInput" placeholder="Nama penuh murid">
+    </div>
+    <div class="form-group">
+      <label>Gambar Murid (untuk Pengurusan Kelas)</label>
+      <input type="file" id="studentPhotoInput" accept="image/*">
+    </div>
+    <div class="form-group">
+      <label>Gambar Khas Spin Wheel (pilihan)</label>
+      <input type="file" id="studentSpinPhotoInput" accept="image/*">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('studentModal')">Batal</button>
+      <button class="btn btn-primary" id="studentModalSaveBtn" onclick="saveStudent()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/kelas.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spin Wheel 🎡</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/index.html" class="brand">🌈 Ganjaran BM</a>
+  <div class="breadcrumbs">
+    <a href="/leaderboard.html">🏆 Leaderboard</a>
+    <a href="/kumpulan.html">👨‍👩‍👧‍👦 Kumpulan</a>
+    <a href="/kelas.html">🏫 Pengurusan Kelas</a>
+    <a href="/spin.html" class="active">🎡 Spin Wheel</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1 class="page-title">🎡 Spin Wheel Ajaib</h1>
+  <p class="page-subtitle">Pilih kelas, tekan mula, dan biar keajaiban berlaku!</p>
+
+  <div class="class-selector" id="classSelector"></div>
+
+  <div class="card spin-stage">
+    <div class="spin-display-frame" id="spinFrame">
+      <img id="spinImg" src="" alt="">
+    </div>
+    <div class="spin-name-tag" id="spinNameTag">Sedia untuk spin? 🎉</div>
+    <button class="btn btn-warning" id="spinBtn" onclick="startSpin()" style="margin-top:20px; font-size:17px; padding:14px 34px;">
+      🎲 Mula Spin!
+    </button>
+    <div id="spinCount" style="margin-top:10px; font-size:13px; opacity:.6;"></div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/sound.js"></script>
+<script src="/js/spin.js"></script>
+</body>
+</html>

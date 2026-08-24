@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaderboard 🏆</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/index.html" class="brand">🌈 Ganjaran BM</a>
+  <div class="breadcrumbs">
+    <a href="/leaderboard.html" class="active">🏆 Leaderboard</a>
+    <a href="/kumpulan.html">👨‍👩‍👧‍👦 Kumpulan</a>
+    <a href="/kelas.html">🏫 Pengurusan Kelas</a>
+    <a href="/spin.html">🎡 Spin Wheel</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1 class="page-title">🏆 Leaderboard Bintang</h1>
+  <p class="page-subtitle">Lihat pencapaian murid & kumpulan anda</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tabIndividu" onclick="switchTab('individu')">👤 Individu</button>
+    <button class="tab-btn" id="tabKumpulan" onclick="switchTab('kumpulan')">👨‍👩‍👧‍👦 Kumpulan</button>
+  </div>
+
+  <div class="class-selector" id="classSelector"></div>
+
+  <!-- INDIVIDU -->
+  <div id="viewIndividu">
+    <div id="individuList"></div>
+  </div>
+
+  <!-- KUMPULAN -->
+  <div id="viewKumpulan" style="display:none;">
+    <div class="group-grid" id="kumpulanGrid"></div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/leaderboard.js"></script>
+</body>
+</html>
