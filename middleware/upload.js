@@ -1,23 +1,14 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
-const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
-  }
-});
+// Guna memory storage - fail disimpan sementara dalam RAM (buffer),
+// kemudian terus dihantar ke Google Cloud Storage (bukan disk server).
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   const allowed = /jpeg|jpg|png|gif|webp/;
-  const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-  const mime = allowed.test(file.mimetype);
-  if (ext && mime) return cb(null, true);
+  const extOk = allowed.test(file.originalname.toLowerCase());
+  const mimeOk = allowed.test(file.mimetype);
+  if (extOk && mimeOk) return cb(null, true);
   cb(new Error('Hanya fail imej dibenarkan (jpg, png, gif, webp)'));
 };
 

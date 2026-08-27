@@ -32,12 +32,29 @@
   <div id="viewClassDetail" style="display:none;">
     <button class="btn btn-outline btn-sm" onclick="backToClassList()">⬅ Kembali ke Senarai Kelas</button>
     <h1 class="page-title" id="detailClassName" style="margin-top:14px;"></h1>
-    <p class="page-subtitle">Urus murid dalam kelas ini — tambah gambar & gambar khas spin wheel</p>
+    <p class="page-subtitle">Urus murid dalam kelas ini</p>
     <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 10px;">
       <button class="btn btn-success" onclick="openStudentModal()">➕ Tambah Murid</button>
       <button class="btn btn-outline" onclick="openEditClassModal()">✏️ Sunting Nama Kelas</button>
     </div>
     <div class="grid" id="studentGrid" style="margin-top:22px;"></div>
+
+    <!-- ===== SET GAMBAR SPIN WHEEL ===== -->
+    <div class="card" style="margin-top:34px;">
+      <h2 style="margin-top:0;">🎡 Set Gambar Spin Wheel</h2>
+      <p style="opacity:.7; font-size:14px; margin-top:-6px;">
+        Upload gambar landscape (dah ada muka & nama) untuk kelas ini. Spin wheel akan pilih secara rawak dari set gambar ni.
+      </p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px;">
+        <label class="btn btn-purple" style="cursor:pointer;">
+          📤 Upload Gambar (boleh pilih banyak sekali)
+          <input type="file" id="spinBulkInput" accept="image/*" multiple style="display:none;" onchange="uploadSpinImages()">
+        </label>
+        <button class="btn btn-danger btn-sm" onclick="clearSpinImages()">🗑️ Kosongkan Semua Gambar</button>
+        <span id="spinUploadStatus" style="font-size:13px; opacity:.7;"></span>
+      </div>
+      <div class="grid" id="spinImageGrid" style="grid-template-columns: repeat(auto-fill, minmax(160px,1fr));"></div>
+    </div>
   </div>
 
 </div>
@@ -66,12 +83,8 @@
       <input type="text" id="studentNameInput" placeholder="Nama penuh murid">
     </div>
     <div class="form-group">
-      <label>Gambar Murid (untuk Pengurusan Kelas)</label>
+      <label>Gambar Murid</label>
       <input type="file" id="studentPhotoInput" accept="image/*">
-    </div>
-    <div class="form-group">
-      <label>Gambar Khas Spin Wheel (pilihan)</label>
-      <input type="file" id="studentSpinPhotoInput" accept="image/*">
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('studentModal')">Batal</button>

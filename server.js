@@ -22,7 +22,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 app.use('/api/classes', require('./routes/classes'));
 app.use('/api/groups', require('./routes/groups'));
 app.use('/api/leaderboard', require('./routes/leaderboard'));
-app.use('/api/spin', require('./routes/spin'));
+app.use('/api/spin-images', require('./routes/spinImages'));
 
 // Semak status server
 app.get('/api/health', (req, res) => res.json({ status: 'OK', message: 'Server berjalan lancar! 🎉' }));

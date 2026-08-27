@@ -1,13 +1,13 @@
 let spinClasses = [];
 let spinSelectedClassId = null;
-let spinStudents = [];
+let spinImages = [];
 let isSpinning = false;
 
 document.addEventListener('DOMContentLoaded', initSpinPage);
 
 function placeholderSVG() {
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="#FFE8A3"/><text x="100" y="120" font-size="70" text-anchor="middle">🙂</text></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="320" height="200"><rect width="320" height="200" fill="#FFE8A3"/><text x="160" y="115" font-size="60" text-anchor="middle">🎡</text></svg>
   `);
 }
 
@@ -31,21 +31,17 @@ async function spinSelectClass(classId) {
   const chip = document.getElementById(`spinchip-${classId}`);
   if (chip) chip.classList.add('active');
 
-  spinStudents = await API.get(`/spin/${classId}`);
-  document.getElementById('spinCount').textContent = `${spinStudents.length} murid dalam kelas ini`;
-  document.getElementById('spinImg').src = spinStudents[0] ? imgOf(spinStudents[0]) : placeholderSVG();
-  document.getElementById('spinNameTag').textContent = spinStudents.length ? 'Sedia untuk spin? 🎉' : 'Tiada murid dalam kelas ini';
+  spinImages = await API.get(`/spin-images/${classId}`);
+  document.getElementById('spinCount').textContent = `${spinImages.length} gambar dalam set kelas ini`;
+  document.getElementById('spinImg').src = spinImages[0] ? spinImages[0].imageUrl : placeholderSVG();
+  document.getElementById('spinNameTag').textContent = spinImages.length ? 'Sedia untuk spin? 🎉' : 'Tiada gambar spin untuk kelas ini — upload di Pengurusan Kelas';
   document.getElementById('spinFrame').classList.remove('winner');
-}
-
-function imgOf(student) {
-  return student.spinPhoto || student.photo || placeholderSVG();
 }
 
 async function startSpin() {
   if (isSpinning) return;
-  if (!spinStudents || spinStudents.length === 0) {
-    toast('Tiada murid untuk spin dalam kelas ini', 'error');
+  if (!spinImages || spinImages.length === 0) {
+    toast('Tiada gambar untuk spin — upload dulu di Pengurusan Kelas', 'error');
     return;
   }
   isSpinning = true;
@@ -59,10 +55,10 @@ async function startSpin() {
   frame.classList.add('spinning');
   nameTag.textContent = '🎲 Mengocok...';
 
-  const winnerIndex = Math.floor(Math.random() * spinStudents.length);
-  const winner = spinStudents[winnerIndex];
+  const winnerIndex = Math.floor(Math.random() * spinImages.length);
+  const winner = spinImages[winnerIndex];
 
-  // ===== FASA 1: pusingan pantas (macam slot machine) =====
+  // ===== FASA 1: pusingan pantas (macam slot machine), makin lama makin perlahan =====
   const totalDurationMs = 3200;
   const startTime = performance.now();
   let lastIdx = -1;
@@ -70,20 +66,16 @@ async function startSpin() {
   function tickFrame(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / totalDurationMs, 1);
-    // easing: makin lama makin perlahan (ease-out cubic diterbalikkan untuk delay)
     const easedProgress = 1 - Math.pow(1 - progress, 3);
-    // interval delay meningkat drastik di penghujung (kelajuan menurun)
     const minDelay = 45;
     const maxDelay = 420;
     const currentDelay = minDelay + (maxDelay - minDelay) * easedProgress;
 
     if (progress < 1) {
-      let idx = Math.floor(Math.random() * spinStudents.length);
-      if (spinStudents.length > 1 && idx === lastIdx) idx = (idx + 1) % spinStudents.length;
+      let idx = Math.floor(Math.random() * spinImages.length);
+      if (spinImages.length > 1 && idx === lastIdx) idx = (idx + 1) % spinImages.length;
       lastIdx = idx;
-      const s = spinStudents[idx];
-      img.src = imgOf(s);
-      nameTag.textContent = s.name;
+      img.src = spinImages[idx].imageUrl;
       playTick();
 
       setTimeout(() => requestAnimationFrame(tickFrame), currentDelay);
@@ -101,8 +93,8 @@ function finishSpin(winner) {
   const nameTag = document.getElementById('spinNameTag');
 
   frame.classList.remove('spinning');
-  img.src = imgOf(winner);
-  nameTag.innerHTML = `🎉 ${winner.name} 🎉`;
+  img.src = winner.imageUrl;
+  nameTag.innerHTML = `🎉 Tahniah! 🎉`;
 
   // efek zoom-in pemenang
   void frame.offsetWidth; // reset animation

@@ -3,7 +3,9 @@ const router = express.Router();
 const Class = require('../models/Class');
 const Student = require('../models/Student');
 const Group = require('../models/Group');
+const SpinImage = require('../models/SpinImage');
 const upload = require('../middleware/upload');
+const { uploadBufferToGCS, deleteFromGCS } = require('../config/gcs');
 
 // ===== KELAS =====
 
@@ -45,10 +47,13 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Padam kelas (padam juga murid & kumpulan dalam kelas tu)
+// Padam kelas (padam juga murid, kumpulan & gambar spin dalam kelas tu)
 router.delete('/:id', async (req, res) => {
   try {
     const classId = req.params.id;
+    const spinImgs = await SpinImage.find({ classId });
+    await Promise.all(spinImgs.map((img) => deleteFromGCS(img.imageUrl)));
+    await SpinImage.deleteMany({ classId });
     await Student.deleteMany({ classId });
     await Group.deleteMany({ classId });
     await Class.findByIdAndDelete(classId);
@@ -70,23 +75,25 @@ router.get('/:classId/students', async (req, res) => {
   }
 });
 
-// Tambah murid + gambar (photo = gambar kelas, spinPhoto = gambar khas spin wheel)
+// Tambah murid + gambar
 router.post(
   '/:classId/students',
-  upload.fields([{ name: 'photo', maxCount: 1 }, { name: 'spinPhoto', maxCount: 1 }]),
+  upload.fields([{ name: 'photo', maxCount: 1 }]),
   async (req, res) => {
     try {
       const { name } = req.body;
       if (!name) return res.status(400).json({ error: 'Nama murid diperlukan' });
 
-      const photo = req.files?.photo ? `/uploads/${req.files.photo[0].filename}` : '';
-      const spinPhoto = req.files?.spinPhoto ? `/uploads/${req.files.spinPhoto[0].filename}` : '';
+      let photo = '';
+      if (req.files?.photo) {
+        const f = req.files.photo[0];
+        photo = await uploadBufferToGCS(f.buffer, f.originalname, f.mimetype);
+      }
 
       const student = await Student.create({
         name,
         classId: req.params.classId,
-        photo,
-        spinPhoto
+        photo
       });
       res.status(201).json(student);
     } catch (err) {
@@ -98,17 +105,23 @@ router.post(
 // Sunting murid (nama / gambar)
 router.put(
   '/students/:studentId',
-  upload.fields([{ name: 'photo', maxCount: 1 }, { name: 'spinPhoto', maxCount: 1 }]),
+  upload.fields([{ name: 'photo', maxCount: 1 }]),
   async (req, res) => {
     try {
       const { name } = req.body;
+      const existing = await Student.findById(req.params.studentId);
+      if (!existing) return res.status(404).json({ error: 'Murid tidak dijumpai' });
+
       const update = {};
       if (name) update.name = name;
-      if (req.files?.photo) update.photo = `/uploads/${req.files.photo[0].filename}`;
-      if (req.files?.spinPhoto) update.spinPhoto = `/uploads/${req.files.spinPhoto[0].filename}`;
+
+      if (req.files?.photo) {
+        const f = req.files.photo[0];
+        update.photo = await uploadBufferToGCS(f.buffer, f.originalname, f.mimetype);
+        deleteFromGCS(existing.photo); // padam gambar lama (tak perlu tunggu)
+      }
 
       const student = await Student.findByIdAndUpdate(req.params.studentId, update, { new: true });
-      if (!student) return res.status(404).json({ error: 'Murid tidak dijumpai' });
       res.json(student);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -119,7 +132,8 @@ router.put(
 // Padam murid
 router.delete('/students/:studentId', async (req, res) => {
   try {
-    await Student.findByIdAndDelete(req.params.studentId);
+    const student = await Student.findByIdAndDelete(req.params.studentId);
+    if (student) deleteFromGCS(student.photo);
     await Group.updateMany({}, { $pull: { members: req.params.studentId } });
     res.json({ message: 'Murid berjaya dipadam' });
   } catch (err) {

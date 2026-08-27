@@ -11,11 +11,12 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@google-cloud/storage": "^8.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "mongoose": "^8.5.1",
-    "multer": "^2.0.1",
-    "dotenv": "^16.4.5",
-    "cors": "^2.8.5"
+    "multer": "^2.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"
