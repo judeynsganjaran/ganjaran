@@ -1,8 +1,21 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const SpinImage = require('../models/SpinImage');
 const upload = require('../middleware/upload');
-const { uploadBufferToGCS, deleteFromGCS } = require('../config/gcs');
+
+const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
+
+function removeLocalFile(fileUrl) {
+  try {
+    if (!fileUrl || !fileUrl.startsWith('/uploads/')) return;
+    const filePath = path.join(uploadDir, path.basename(fileUrl));
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  } catch (err) {
+    console.error('Gagal padam fail lokal:', err.message);
+  }
+}
 
 // Dapatkan semua gambar spin wheel untuk satu kelas
 router.get('/:classId', async (req, res) => {
@@ -23,10 +36,13 @@ router.post('/:classId/upload', upload.array('images', 60), async (req, res) => 
     const classId = req.params.classId;
 
     const uploadedDocs = await Promise.all(
-      req.files.map(async (file) => {
-        const url = await uploadBufferToGCS(file.buffer, file.originalname, file.mimetype);
-        return SpinImage.create({ classId, imageUrl: url, originalName: file.originalname });
-      })
+      req.files.map((file) =>
+        SpinImage.create({
+          classId,
+          imageUrl: `/uploads/${file.filename}`,
+          originalName: file.originalname
+        })
+      )
     );
 
     res.status(201).json(uploadedDocs);
@@ -39,7 +55,7 @@ router.post('/:classId/upload', upload.array('images', 60), async (req, res) => 
 router.delete('/:id', async (req, res) => {
   try {
     const img = await SpinImage.findByIdAndDelete(req.params.id);
-    if (img) deleteFromGCS(img.imageUrl);
+    if (img) removeLocalFile(img.imageUrl);
     res.json({ message: 'Gambar dipadam' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -50,7 +66,7 @@ router.delete('/:id', async (req, res) => {
 router.delete('/class/:classId/clear', async (req, res) => {
   try {
     const images = await SpinImage.find({ classId: req.params.classId });
-    await Promise.all(images.map((img) => deleteFromGCS(img.imageUrl)));
+    images.forEach((img) => removeLocalFile(img.imageUrl));
     await SpinImage.deleteMany({ classId: req.params.classId });
     res.json({ message: 'Semua gambar dikosongkan' });
   } catch (err) {

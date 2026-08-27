@@ -1,11 +1,24 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const Class = require('../models/Class');
 const Student = require('../models/Student');
 const Group = require('../models/Group');
 const SpinImage = require('../models/SpinImage');
 const upload = require('../middleware/upload');
-const { uploadBufferToGCS, deleteFromGCS } = require('../config/gcs');
+
+const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
+
+function removeLocalFile(fileUrl) {
+  try {
+    if (!fileUrl || !fileUrl.startsWith('/uploads/')) return;
+    const filePath = path.join(uploadDir, path.basename(fileUrl));
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  } catch (err) {
+    console.error('Gagal padam fail lokal:', err.message);
+  }
+}
 
 // ===== KELAS =====
 
@@ -52,7 +65,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const classId = req.params.id;
     const spinImgs = await SpinImage.find({ classId });
-    await Promise.all(spinImgs.map((img) => deleteFromGCS(img.imageUrl)));
+    spinImgs.forEach((img) => removeLocalFile(img.imageUrl));
     await SpinImage.deleteMany({ classId });
     await Student.deleteMany({ classId });
     await Group.deleteMany({ classId });
@@ -84,11 +97,7 @@ router.post(
       const { name } = req.body;
       if (!name) return res.status(400).json({ error: 'Nama murid diperlukan' });
 
-      let photo = '';
-      if (req.files?.photo) {
-        const f = req.files.photo[0];
-        photo = await uploadBufferToGCS(f.buffer, f.originalname, f.mimetype);
-      }
+      const photo = req.files?.photo ? `/uploads/${req.files.photo[0].filename}` : '';
 
       const student = await Student.create({
         name,
@@ -116,9 +125,8 @@ router.put(
       if (name) update.name = name;
 
       if (req.files?.photo) {
-        const f = req.files.photo[0];
-        update.photo = await uploadBufferToGCS(f.buffer, f.originalname, f.mimetype);
-        deleteFromGCS(existing.photo); // padam gambar lama (tak perlu tunggu)
+        update.photo = `/uploads/${req.files.photo[0].filename}`;
+        removeLocalFile(existing.photo);
       }
 
       const student = await Student.findByIdAndUpdate(req.params.studentId, update, { new: true });
@@ -133,7 +141,7 @@ router.put(
 router.delete('/students/:studentId', async (req, res) => {
   try {
     const student = await Student.findByIdAndDelete(req.params.studentId);
-    if (student) deleteFromGCS(student.photo);
+    if (student) removeLocalFile(student.photo);
     await Group.updateMany({}, { $pull: { members: req.params.studentId } });
     res.json({ message: 'Murid berjaya dipadam' });
   } catch (err) {

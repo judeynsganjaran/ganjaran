@@ -11,8 +11,8 @@ Sistem ganjaran interaktif untuk guru prasekolah — Leaderboard bintang, Kumpul
 ## 🛠️ Teknologi
 - Backend: Node.js + Express
 - Database: MongoDB (Atlas)
-- Storan Gambar: Google Cloud Storage (kekal, tak hilang bila server restart)
-- Upload gambar: Multer (memory) → terus ke Google Cloud Storage
+- Storan Gambar: Disk server (folder `public/uploads`)
+- Upload gambar: Multer
 - Frontend: HTML, CSS (Fredoka/Baloo 2 font), Vanilla JS
 - Deploy: Render + GitHub
 
@@ -31,27 +31,7 @@ Buka `http://localhost:3000`
 
 ---
 
-## 2️⃣ Setup Google Cloud Storage (untuk gambar kekal)
-
-1. Pergi [console.cloud.google.com](https://console.cloud.google.com) → cipta akaun/project
-2. Aktifkan **Cloud Storage API**
-3. **Cloud Storage → Buckets → Create**:
-   - Nama bucket unik, contoh `ganjaran-bm-gambar`
-   - Location: `asia-southeast1` (Singapore)
-   - Access control: **Uniform**
-   - Public access prevention: **OFF**
-4. Lepas bucket cipta → tab **Permissions → Grant Access**:
-   - Principal: `allUsers`
-   - Role: **Storage Object Viewer**
-5. **IAM & Admin → Service Accounts → Create Service Account**:
-   - Beri role **Storage Object Admin**
-   - Buka service account tu → **Keys → Add Key → Create New Key → JSON** → download fail
-6. Buka fail JSON tu dalam text editor, **copy SEMUA isi kandungan** (satu blok JSON)
-7. Simpan untuk step Render nanti — ini akan jadi environment variable `GOOGLE_CREDENTIALS_JSON`
-
----
-
-## 3️⃣ Setup MongoDB Atlas (Percuma)
+## 2️⃣ Setup MongoDB Atlas (Percuma)
 
 1. Daftar di [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
 2. Cipta **Cluster** percuma (M0)
@@ -65,7 +45,7 @@ Buka `http://localhost:3000`
 
 ---
 
-## 4️⃣ Push ke GitHub
+## 3️⃣ Push ke GitHub
 
 ```bash
 git init
@@ -80,7 +60,7 @@ git push -u origin main
 
 ---
 
-## 5️⃣ Deploy ke Render
+## 4️⃣ Deploy ke Render
 
 1. Daftar/log masuk di [render.com](https://render.com)
 2. **New +** → **Web Service**
@@ -89,15 +69,16 @@ git push -u origin main
    - **Build Command:** `npm install`
    - **Start Command:** `npm start`
    - **Environment:** Node
-5. Tambah **3 Environment Variables**:
-   - Key: `MONGODB_URI` → Value: (connection string Atlas anda)
-   - Key: `GCS_BUCKET_NAME` → Value: (nama bucket, contoh `ganjaran-bm-gambar`)
-   - Key: `GOOGLE_CREDENTIALS_JSON` → Value: (paste SEMUA isi fail JSON service account, sebagai satu baris)
+5. Tambah **Environment Variable**:
+   - Key: `MONGODB_URI`
+   - Value: (connection string Atlas anda)
 6. Klik **Create Web Service** — tunggu deploy siap (~2-3 minit)
 7. Laman anda akan hidup di `https://nama-app-anda.onrender.com`
 
-### ✅ Gambar kekal selamanya
-Sebab gambar disimpan dalam Google Cloud Storage (bukan server Render), gambar murid **tidak akan hilang** walaupun server restart atau redeploy.
+### ⚠️ Nota penting tentang gambar upload (Render Free Tier)
+Render free tier menggunakan **ephemeral disk** — fail yang diupload (`public/uploads`) akan **hilang** bila server restart/redeploy. Untuk kegunaan harian di kelas ia berfungsi baik — cuma gambar (foto murid & set gambar spin wheel) perlu diupload semula selepas setiap redeploy/restart server.
+
+> 💡 Kalau nanti cikgu nak selesaikan ini secara kekal (gambar tak hilang langsung), boleh tanya semula — ada penyelesaian guna storan awan yang lebih mudah setup.
 
 ---
 
@@ -107,9 +88,9 @@ Sebab gambar disimpan dalam Google Cloud Storage (bukan server Render), gambar m
 project/
 ├── server.js              # Entry point Express
 ├── config/db.js           # Sambungan MongoDB
-├── models/                # Schema Mongoose (Class, Student, Group)
+├── models/                # Schema Mongoose (Class, Student, Group, SpinImage)
 ├── routes/                # API endpoints
-├── middleware/upload.js   # Multer upload gambar
+├── middleware/upload.js   # Multer upload gambar (disk storage)
 └── public/
     ├── index.html          # Dashboard utama
     ├── kelas.html          # Pengurusan Kelas
@@ -117,6 +98,7 @@ project/
     ├── leaderboard.html    # Leaderboard
     ├── spin.html           # Spin Wheel
     ├── css/style.css       # Tema ceria prasekolah
+    ├── uploads/            # Gambar yang diupload (sementara, Render free tier)
     └── js/                 # Logik setiap halaman
 ```
 
