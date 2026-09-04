@@ -26,6 +26,27 @@
     <h1 class="page-title">🏫 Pengurusan Kelas</h1>
     <p class="page-subtitle">Urus kelas, senarai murid, kumpulan, dan tetapan laman anda</p>
 
+    <!-- SENARAI KELAS -->
+    <h2 style="margin-top:0;">Senarai Kelas</h2>
+    <button class="btn btn-primary" onclick="openClassModal()">➕ Cipta Kelas Baru</button>
+    <div class="grid" id="classGrid" style="margin-top:22px; margin-bottom:34px;"></div>
+
+    <!-- KUMPULAN -->
+    <div class="card">
+      <h2 style="margin-top:0;">👨‍👩‍👧‍👦 Kumpulan</h2>
+      <p style="opacity:.7; font-size:14px; margin-top:-8px; margin-bottom:0;">
+        Untuk cipta, sunting atau padam kumpulan, klik salah satu kelas di atas, kemudian pergi ke bahagian "Urus Kumpulan" dalam kelas tersebut.
+        Nak tambah mata bonus kumpulan atau lihat kedudukan? Pergi ke halaman <a href="/kumpulan.html">Kumpulan</a>.
+      </p>
+    </div>
+
+    <!-- EKSPORT DATA -->
+    <div class="card">
+      <h2 style="margin-top:0;">📄 Eksport Data (Backup)</h2>
+      <p style="opacity:.7; font-size:14px; margin-top:-8px;">Muat turun semua data murid, bintang & kumpulan dalam satu fail Word untuk simpanan sandaran.</p>
+      <button class="btn btn-secondary" onclick="exportWordBackup()">📥 Eksport Semua Data (Word)</button>
+    </div>
+
     <!-- TETAPAN LAMAN -->
     <div class="card settings-card">
       <h2 style="margin-top:0;">⚙️ Tetapan Laman</h2>
@@ -46,17 +67,6 @@
         <button class="btn btn-primary" onclick="saveSiteSettings()">💾 Simpan Tetapan</button>
       </div>
     </div>
-
-    <!-- EKSPORT DATA -->
-    <div class="card">
-      <h2 style="margin-top:0;">📄 Eksport Data (Backup)</h2>
-      <p style="opacity:.7; font-size:14px; margin-top:-8px;">Muat turun semua data murid, bintang & kumpulan dalam satu fail Word untuk simpanan sandaran.</p>
-      <button class="btn btn-secondary" onclick="exportWordBackup()">📥 Eksport Semua Data (Word)</button>
-    </div>
-
-    <h2>Senarai Kelas</h2>
-    <button class="btn btn-primary" onclick="openClassModal()">➕ Cipta Kelas Baru</button>
-    <div class="grid" id="classGrid" style="margin-top:22px;"></div>
   </div>
 
   <!-- ===== VIEW: DETAIL KELAS ===== -->

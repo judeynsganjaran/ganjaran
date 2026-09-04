@@ -3,9 +3,9 @@
 Sistem ganjaran interaktif untuk guru prasekolah — Leaderboard bintang + sticker, Kumpulan, Pengurusan Kelas, Spin Wheel, Hadiah & Tetapan Laman.
 
 ## ✨ Ciri-ciri
-- **Pengurusan Kelas** — cipta/sunting kelas, urus murid, **urus kumpulan** (cipta/sunting/padam), set gambar spin wheel, **tetapan laman** (nama & logo), **eksport data (Word)**
-- **Kumpulan** — halaman *paparan sahaja* untuk murid/guru lihat kumpulan, ketua, ahli & jumlah bintang
-- **Leaderboard** — individu (bintang besar + tahap semasa + sticker unlock) & kumpulan (circle progress)
+- **Pengurusan Kelas** — Senarai kelas (dengan bilangan murid), urus murid, **urus kumpulan** (cipta/sunting/padam), set gambar spin wheel, tetapan laman (nama & logo), eksport data (Word)
+- **Kumpulan** — paparan kedudukan kumpulan (leaderboard), ketua kumpulan automatik di atas senarai ahli, **tambah mata bonus terus di sini (serta-merta)**
+- **Leaderboard Murid** — senarai murid dengan bintang besar + tahap semasa + sticker unlock, **carian nama (scroll + kelip automatik)**, tambah/kurang bintang **serta-merta tanpa delay**
 - **Spin Wheel** — tekan pada gambar untuk spin, animasi rawak gempak + skrin penuh
 - **Hadiah** — urus poster hadiah besar & sticker untuk setiap tahap bintang
 
@@ -75,8 +75,8 @@ git push
 
 ## 👨‍👩‍👧‍👦 Cara guna Kumpulan
 
-1. **Pengurusan Kelas** → pilih kelas → bahagian **"Urus Kumpulan"**: cipta kumpulan, upload gambar, tick ahli, pilih ketua, sunting/padam, tambah mata bonus
-2. Halaman **Kumpulan** (breadcrumb) hanya untuk **lihat** — sesuai dipaparkan kepada murid tanpa risiko data tersalah ubah
+1. **Pengurusan Kelas** → pilih kelas → bahagian **"Urus Kumpulan"**: cipta kumpulan, upload gambar, tick ahli, pilih ketua, sunting/padam
+2. Halaman **Kumpulan** (breadcrumb) — papar kedudukan kumpulan (leaderboard), ketua kumpulan automatik di atas senarai ahli, dan boleh **tambah/kurang mata bonus terus di sini** secara serta-merta
 
 ## 🎁 Cara guna Hadiah & Sticker
 

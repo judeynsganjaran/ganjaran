@@ -270,29 +270,16 @@ async function loadGroupsManage() {
           <img src="${g.photo || placeholderSVG()}" style="width:48px;height:48px;border-radius:12px;object-fit:cover;background:#f2f2f2;flex-shrink:0;">
           <div style="flex:1; min-width:0;">
             <div style="font-weight:800; font-size:16px; font-family:'Baloo 2';">${g.name}</div>
-            <div style="font-size:12px; opacity:.65;">👥 ${g.members.length} ahli · ${starIconSVG(12)} ${total} bintang</div>
+            <div style="font-size:12px; opacity:.65;">👥 ${g.members.length} ahli · ${starIconSVG(12)} ${total} bintang (bonus: ${g.bonusPoints || 0})</div>
           </div>
         </div>
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; background:#EAF7FF; padding:6px 10px; border-radius:12px; margin-bottom:10px;">
-          <span style="font-size:12px; font-weight:600;">➕ Bonus: <b>${g.bonusPoints || 0}</b></span>
-          <div style="display:flex; gap:6px;">
-            <button class="star-add-btn star-remove-btn" onclick="adjustGroupBonus('${g._id}', -1)">➖</button>
-            <button class="star-add-btn" onclick="adjustGroupBonus('${g._id}', 1)">➕</button>
-          </div>
-        </div>
+        <p style="font-size:12px; opacity:.6; margin:0 0 10px;">💡 Nak tambah mata bonus? Pergi ke halaman <a href="/kumpulan.html">Kumpulan</a></p>
         <div style="display:flex; gap:6px;">
           <button class="btn btn-sm btn-outline" style="flex:1;" onclick="openEditGroupModal('${g._id}')">✏️ Sunting</button>
           <button class="btn btn-sm btn-danger" onclick="deleteGroup('${g._id}')">🗑️</button>
         </div>
       </div>`;
     }).join('');
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-async function adjustGroupBonus(groupId, delta) {
-  try {
-    await API.patch(`/groups/${groupId}/point`, { delta });
-    await loadGroupsManage();
   } catch (e) { toast(e.message, 'error'); }
 }
 

@@ -1,7 +1,7 @@
 let lbClasses = [];
 let lbSelectedClassId = null;
-let lbTab = 'individu';
 let rewardTiers = [];
+let currentStudents = []; // cache murid semasa untuk update pantas (optimistic)
 
 document.addEventListener('DOMContentLoaded', initLeaderboard);
 
@@ -19,69 +19,61 @@ async function initLeaderboard() {
   } catch (e) { toast(e.message, 'error'); }
 }
 
-function switchTab(tab) {
-  lbTab = tab;
-  document.getElementById('tabIndividu').classList.toggle('active', tab === 'individu');
-  document.getElementById('tabKumpulan').classList.toggle('active', tab === 'kumpulan');
-  document.getElementById('viewIndividu').style.display = tab === 'individu' ? 'block' : 'none';
-  document.getElementById('viewKumpulan').style.display = tab === 'kumpulan' ? 'block' : 'none';
-  if (lbSelectedClassId) lbSelectClass(lbSelectedClassId);
-}
-
 async function lbSelectClass(classId) {
   lbSelectedClassId = classId;
   document.querySelectorAll('.class-chip').forEach((el) => el.classList.remove('active'));
   const chip = document.getElementById(`lbchip-${classId}`);
   if (chip) chip.classList.add('active');
-
-  if (lbTab === 'individu') await loadIndividu(classId);
-  else await loadKumpulan(classId);
+  document.getElementById('studentSearchInput').value = '';
+  await loadIndividu(classId);
 }
 
-// ===== INDIVIDU: kad murid + counter bintang + grid sticker =====
+// ===== SENARAI MURID: kad + counter bintang + grid sticker =====
 
 async function loadIndividu(classId) {
   try {
-    const students = await API.get(`/leaderboard/individu/${classId}`);
-    const list = document.getElementById('individuList');
-    if (students.length === 0) {
-      list.innerHTML = `<div class="empty-state"><div class="emoji">👦👧</div>Tiada murid dalam kelas ini.</div>`;
-      return;
-    }
-    list.innerHTML = students.map((s, i) => {
-      const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
-      const currentTier = getCurrentTier(s.points);
-      return `
-      <div class="student-reward-card ${rankClass}">
-        <div class="src-header">
-          <div class="src-rank">${i + 1}</div>
-          <img class="src-photo" src="${s.photo || placeholderSVG()}" alt="${s.name}">
-          <div class="src-name">
-            ${s.name}
-            ${currentTier ? `<div class="src-level-badge">🏅 Tahap ${currentTier.levelNumber}${currentTier.name ? ' — ' + currentTier.name : ''}</div>` : ''}
-          </div>
-          <div class="star-counter">
-            <button class="star-add-btn star-remove-btn" title="Kurang bintang" onclick="addPoint('${s._id}', -1)">➖</button>
-            ${starIconSVG(30)}
-            <span class="count">${s.points}</span>
-            <button class="star-add-btn" title="Tambah bintang" onclick="addPoint('${s._id}', 1)">➕</button>
-          </div>
-        </div>
-        ${renderStickerGrid(s.points)}
-      </div>`;
-    }).join('');
+    currentStudents = await API.get(`/leaderboard/individu/${classId}`);
+    renderIndividuList();
   } catch (e) { toast(e.message, 'error'); }
 }
 
+function renderIndividuList() {
+  const list = document.getElementById('individuList');
+  if (currentStudents.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="emoji">👦👧</div>Tiada murid dalam kelas ini.</div>`;
+    return;
+  }
+  list.innerHTML = currentStudents.map((s, i) => {
+    const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+    const currentTier = getCurrentTier(s.points);
+    return `
+    <div class="student-reward-card ${rankClass}" id="src-${s._id}" data-name="${s.name.toLowerCase()}">
+      <div class="src-header">
+        <div class="src-rank">${i + 1}</div>
+        <img class="src-photo" src="${s.photo || placeholderSVG()}" alt="${s.name}">
+        <div class="src-name">
+          ${s.name}
+          ${currentTier ? `<div class="src-level-badge">🏅 Tahap ${currentTier.levelNumber}${currentTier.name ? ' — ' + currentTier.name : ''}</div>` : ''}
+        </div>
+        <div class="star-counter">
+          <button class="star-add-btn star-remove-btn" title="Kurang bintang" onclick="addPoint('${s._id}', -1)">➖</button>
+          ${starIconSVG(30)}
+          <span class="count" id="count-${s._id}">${s.points}</span>
+          <button class="star-add-btn" title="Tambah bintang" onclick="addPoint('${s._id}', 1)">➕</button>
+        </div>
+      </div>
+      <div id="stickers-${s._id}">${renderStickerGrid(s.points)}</div>
+    </div>`;
+  }).join('');
+}
+
 function getCurrentTier(points) {
-  // Cari tahap tertinggi yang sudah dicapai murid
   const eligible = rewardTiers.filter((t) => points >= t.minStars);
   if (eligible.length === 0) return null;
   return eligible.reduce((a, b) => (b.levelNumber > a.levelNumber ? b : a));
 }
 
 function renderStickerGrid(points) {
-  // Guna 12 tahap (atau berapa banyak yang guru ada cipta), 6 lajur x 2 baris
   const tiers = rewardTiers.slice(0, 12);
   return `<div class="sticker-grid">
     ${tiers.map((t) => {
@@ -100,60 +92,53 @@ function renderStickerGrid(points) {
   </div>`;
 }
 
-async function addPoint(studentId, delta) {
-  try {
-    await API.patch(`/leaderboard/student/${studentId}/point`, { delta });
-    if (delta > 0) {
-      playStarChime();
-      toast('Bintang ditambah! ⭐');
-    }
-    await loadIndividu(lbSelectedClassId);
-  } catch (e) { toast(e.message, 'error'); }
+// ===== TAMBAH/KURANG BINTANG - KEMASKINI SERTA-MERTA (optimistic, tiada delay) =====
+
+function addPoint(studentId, delta) {
+  const student = currentStudents.find((s) => s._id === studentId);
+  if (!student) return;
+
+  // 1) Kemaskini paparan SERTA-MERTA di skrin (tanpa tunggu server)
+  student.points = Math.max(0, student.points + delta);
+  document.getElementById(`count-${studentId}`).textContent = student.points;
+  document.getElementById(`stickers-${studentId}`).innerHTML = renderStickerGrid(student.points);
+
+  if (delta > 0) playStarChime();
+
+  // 2) Hantar ke server di latar belakang (tidak menyekat UI)
+  API.patch(`/leaderboard/student/${studentId}/point`, { delta })
+    .then(() => {
+      // Selaraskan susunan kedudukan secara senyap selepas server sahkan
+      loadIndividu(lbSelectedClassId);
+    })
+    .catch((e) => {
+      toast(e.message, 'error');
+      // kembalikan nilai asal jika gagal
+      student.points = Math.max(0, student.points - delta);
+      document.getElementById(`count-${studentId}`).textContent = student.points;
+      document.getElementById(`stickers-${studentId}`).innerHTML = renderStickerGrid(student.points);
+    });
 }
 
-// ===== KUMPULAN: circle progress (kekal) =====
+// ===== SEARCH: cari nama, scroll & kelipkan =====
 
-async function loadKumpulan(classId) {
-  try {
-    const groups = await API.get(`/leaderboard/kumpulan/${classId}`);
-    const grid = document.getElementById('kumpulanGrid');
-    if (groups.length === 0) {
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">👨‍👩‍👧‍👦</div>Tiada kumpulan dalam kelas ini.</div>`;
-      return;
-    }
-    const maxPoints = Math.max(...groups.map((g) => g.totalPoints), 10);
-    const radius = 58;
-    const circumference = 2 * Math.PI * radius;
+let searchDebounceTimer = null;
+function handleSearch() {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(runSearch, 120);
+}
 
-    grid.innerHTML = groups.map((g, i) => {
-      const pct = Math.min(g.totalPoints / maxPoints, 1);
-      const offset = circumference - pct * circumference;
-      return `
-      <div class="group-circle-card">
-        ${i === 0 ? '<div class="group-rank-badge">👑 Mendahului</div>' : `<div class="group-rank-badge" style="background:#B18CFF;">#${i + 1}</div>`}
-        ${g.photo ? `<img src="${g.photo}" style="width:48px;height:48px;border-radius:12px;object-fit:cover;margin-bottom:8px;">` : ''}
-        <div class="circle-progress">
-          <svg viewBox="0 0 140 140">
-            <circle class="circle-bg" cx="70" cy="70" r="${radius}"></circle>
-            <circle class="circle-fill" cx="70" cy="70" r="${radius}"
-              stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}"
-              style="stroke: ${g.color || '#FF6FA5'}"
-              data-offset="${offset}"></circle>
-          </svg>
-          <div class="circle-label">
-            <div class="points">${g.totalPoints}</div>
-            <div class="stars">${starIconSVG(14)} bintang</div>
-          </div>
-        </div>
-        <div class="group-name">${g.name}</div>
-        <div style="font-size:13px; opacity:.65;">👥 ${g.members.length} ahli${g.leader ? ` · 👑 ${g.leader.name}` : ''}</div>
-      </div>`;
-    }).join('');
+function runSearch() {
+  const query = document.getElementById('studentSearchInput').value.trim().toLowerCase();
+  document.querySelectorAll('.student-reward-card').forEach((el) => el.classList.remove('search-blink'));
+  if (!query) return;
 
-    setTimeout(() => {
-      document.querySelectorAll('.circle-fill').forEach((el) => {
-        el.style.strokeDashoffset = el.dataset.offset;
-      });
-    }, 80);
-  } catch (e) { toast(e.message, 'error'); }
+  const match = currentStudents.find((s) => s.name.toLowerCase().includes(query));
+  if (!match) return;
+
+  const el = document.getElementById(`src-${match._id}`);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.add('search-blink');
+  setTimeout(() => el.classList.remove('search-blink'), 1800);
 }
