@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Fredoka:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Fredoka:wght@400;500;600;700&family=Chewy&display=swap');
 
 :root {
   --pink: #FF6FA5;
@@ -19,14 +19,24 @@
 body {
   margin: 0;
   font-family: 'Fredoka', sans-serif;
-  background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
   color: var(--dark);
   min-height: 100vh;
+  background-color: var(--bg1);
+  background-image:
+    radial-gradient(circle at 8% 15%, rgba(255,111,165,0.16) 0, transparent 22%),
+    radial-gradient(circle at 92% 12%, rgba(92,200,255,0.18) 0, transparent 24%),
+    radial-gradient(circle at 15% 85%, rgba(255,164,92,0.16) 0, transparent 24%),
+    radial-gradient(circle at 88% 80%, rgba(177,140,255,0.18) 0, transparent 24%),
+    radial-gradient(circle at 50% 50%, rgba(107,230,166,0.10) 0, transparent 35%),
+    linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+  background-attachment: fixed;
 }
 
-h1, h2, h3, .brand {
+h1, h2, h3 {
   font-family: 'Baloo 2', sans-serif;
 }
+.brand { font-family: 'Baloo 2', sans-serif; }
+.page-title { font-family: 'Chewy', 'Baloo 2', sans-serif; letter-spacing: .5px; }
 
 /* ===== NAVBAR / BREADCRUMB ===== */
 .navbar {
@@ -51,6 +61,9 @@ h1, h2, h3, .brand {
   align-items: center;
   gap: 8px;
   text-decoration: none;
+}
+.brand img.brand-logo {
+  width: 34px; height: 34px; border-radius: 10px; object-fit: cover; background: #fff;
 }
 
 .breadcrumbs {
@@ -254,6 +267,10 @@ h1, h2, h3, .brand {
 }
 .src-photo { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; background: #f2f2f2; flex-shrink: 0; }
 .src-name { font-weight: 700; font-size: 17px; flex: 1; min-width: 100px; }
+.leader-tag {
+  display: inline-block; margin-left: 8px; background: var(--yellow); color: var(--dark);
+  font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; vertical-align: middle;
+}
 .src-level-badge {
   display: inline-block; margin-top: 4px; background: var(--purple); color: #fff;
   font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
@@ -419,6 +436,14 @@ h1, h2, h3, .brand {
   font-size: 13px; margin-bottom: 6px; text-align: center;
 }
 .tier-star-range { font-size: 12px; opacity: .6; margin-bottom: 8px; }
+
+/* ===== SETTINGS CARD (Pengurusan Kelas) ===== */
+.settings-card { background: linear-gradient(135deg, #fff, #FFF7EE); }
+.settings-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+.logo-preview {
+  width: 64px; height: 64px; border-radius: 16px; object-fit: cover; background: #F7F4FB;
+  border: 2px solid #eee;
+}
 
 @media (max-width: 640px) {
   .navbar { flex-direction: column; align-items: flex-start; }

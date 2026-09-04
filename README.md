@@ -1,24 +1,20 @@
 # 🌈 Sistem Ganjaran Bahasa Melayu
 
-Sistem ganjaran interaktif untuk guru prasekolah — Leaderboard bintang + sticker, Kumpulan, Pengurusan Kelas, Spin Wheel & Hadiah.
+Sistem ganjaran interaktif untuk guru prasekolah — Leaderboard bintang + sticker, Kumpulan, Pengurusan Kelas, Spin Wheel, Hadiah & Tetapan Laman.
 
 ## ✨ Ciri-ciri
-- **Pengurusan Kelas** — cipta/sunting kelas, urus murid (nama + gambar), urus set gambar spin wheel
-- **Kumpulan** — gambar kumpulan, ketua kumpulan, senarai ahli + mata masing-masing, mata bonus manual kumpulan
+- **Pengurusan Kelas** — cipta/sunting kelas, urus murid, **urus kumpulan** (cipta/sunting/padam), set gambar spin wheel, **tetapan laman** (nama & logo), **eksport data (Word)**
+- **Kumpulan** — halaman *paparan sahaja* untuk murid/guru lihat kumpulan, ketua, ahli & jumlah bintang
 - **Leaderboard** — individu (bintang besar + tahap semasa + sticker unlock) & kumpulan (circle progress)
 - **Spin Wheel** — tekan pada gambar untuk spin, animasi rawak gempak + skrin penuh
 - **Hadiah** — urus poster hadiah besar & sticker untuk setiap tahap bintang
 
 ## 🛠️ Teknologi
 - Backend: Node.js + Express
-- Database: MongoDB (Atlas) — **semua gambar disimpan terus dalam MongoDB (base64), bukan cakera server**
-- Frontend: HTML, CSS (Fredoka/Baloo 2 font), Vanilla JS
+- Database: MongoDB (Atlas) — semua gambar disimpan terus dalam MongoDB (base64), kekal walau redeploy
+- Eksport: pustaka `docx` untuk jana fail Word backup
+- Frontend: HTML, CSS (Fredoka / Baloo 2 / Chewy font), Vanilla JS
 - Deploy: Render + GitHub
-
-### 🖼️ Kenapa gambar tak hilang lagi bila redeploy?
-Sebelum ini gambar disimpan atas cakera server Render (`public/uploads`), yang bersifat **sementara** — hilang setiap kali server restart/redeploy. Sekarang semua gambar (foto murid, set spin wheel, sticker, poster) **disimpan terus dalam MongoDB** sebagai teks base64. Oleh sebab MongoDB Atlas adalah pangkalan data luaran yang berasingan dari server Render, gambar akan **kekal selamanya** walau berapa kali pun cikgu redeploy atau update code.
-
-> Nota: had saiz setiap gambar ialah 4MB (cukup untuk foto/sticker biasa).
 
 ---
 
@@ -50,7 +46,7 @@ Buka `http://localhost:3000`
 
 ```bash
 git add .
-git commit -m "Gambar kekal dalam MongoDB, kumpulan lengkap, papar tahap murid"
+git commit -m "Urus kumpulan pindah ke Pengurusan Kelas, tetapan laman, eksport Word"
 git push
 ```
 
@@ -66,19 +62,27 @@ git push
 
 ---
 
+## ⚙️ Cara guna Tetapan Laman
+
+1. Pergi **Pengurusan Kelas** → kad **"⚙️ Tetapan Laman"** di bahagian atas
+2. Tukar nama laman & upload logo sekolah
+3. Klik **Simpan Tetapan** — nama & logo akan terus dipaparkan di navbar SEMUA halaman
+
+## 📄 Cara guna Eksport Data (Backup)
+
+1. Pergi **Pengurusan Kelas** → kad **"📄 Eksport Data (Backup)"**
+2. Klik **Eksport Semua Data (Word)** — fail `.docx` akan dimuat turun terus, mengandungi semua kelas, murid, bintang & kumpulan
+
 ## 👨‍👩‍👧‍👦 Cara guna Kumpulan
 
-1. Pilih kelas → **Cipta Kumpulan Baru**
-2. Isi nama, upload gambar kumpulan (pilihan), tick ahli-ahli
-3. Pilih **Ketua Kumpulan** dari senarai ahli yang di-tick
-4. Kad kumpulan akan tunjuk: gambar, ketua (👑), senarai ahli + mata masing-masing, dan **jumlah bintang kumpulan** (mata ahli + mata bonus)
-5. Guna butang ➕➖ untuk tambah/kurang **mata bonus** kumpulan secara manual
+1. **Pengurusan Kelas** → pilih kelas → bahagian **"Urus Kumpulan"**: cipta kumpulan, upload gambar, tick ahli, pilih ketua, sunting/padam, tambah mata bonus
+2. Halaman **Kumpulan** (breadcrumb) hanya untuk **lihat** — sesuai dipaparkan kepada murid tanpa risiko data tersalah ubah
 
 ## 🎁 Cara guna Hadiah & Sticker
 
 1. **Hadiah** → upload poster besar
 2. Untuk setiap 12 tahap, tetapkan nama, nilai bintang minimum, dan upload sticker PNG
-3. Di **Leaderboard → Individu**, tahap semasa murid dipaparkan, dan sticker unlock automatik bila bintang cukup
+3. Di **Leaderboard → Individu**, tahap semasa murid dipaparkan, sticker unlock automatik
 
 ## 🎡 Cara guna Spin Wheel
 
@@ -92,13 +96,13 @@ git push
 project/
 ├── server.js
 ├── config/db.js
-├── models/          # Class, Student, Group, SpinImage, RewardTier, RewardSettings
-├── routes/          # API endpoints
+├── models/          # Class, Student, Group, SpinImage, RewardTier, RewardSettings, SiteSettings
+├── routes/          # API endpoints (termasuk exportWord.js)
 ├── middleware/upload.js
 └── public/
     ├── index.html / kelas.html / kumpulan.html / leaderboard.html / spin.html / hadiah.html
     ├── css/style.css
-    └── js/
+    └── js/          # termasuk site.js (papar nama/logo laman di semua halaman)
 ```
 
 ## 🔌 API Endpoints Ringkas
@@ -116,8 +120,10 @@ project/
 | GET | `/api/leaderboard/kumpulan/:classId` | Leaderboard kumpulan |
 | PATCH | `/api/leaderboard/student/:id/point` | Tambah/kurang bintang murid |
 | GET/POST | `/api/spin-images/:classId` | Set gambar spin wheel |
-| GET | `/api/reward-tiers` | Senarai 12 tahap bintang & sticker |
+| GET | `/api/reward-tiers` | 12 tahap bintang & sticker |
 | PUT | `/api/reward-tiers/:id` | Kemaskini tahap |
 | GET/PUT | `/api/reward-tiers/settings/poster` | Poster hadiah besar |
+| GET/PUT | `/api/site-settings` | Nama laman & logo |
+| GET | `/api/export/word` | Muat turun backup semua data (.docx) |
 
 Selamat mengajar! 🎉📚

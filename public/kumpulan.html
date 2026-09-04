@@ -9,7 +9,7 @@
 <body>
 
 <nav class="navbar">
-  <a href="/index.html" class="brand">🌈 Ganjaran BM</a>
+  <a href="/index.html" class="brand"><span id="siteBrandEmoji">🌈</span><img id="siteBrandLogo" class="brand-logo" style="display:none;" alt="Logo"><span id="siteBrandText">Ganjaran BM</span></a>
   <div class="breadcrumbs">
     <a href="/leaderboard.html">🏆 Leaderboard</a>
     <a href="/kumpulan.html" class="active">👨‍👩‍👧‍👦 Kumpulan</a>
@@ -21,45 +21,17 @@
 
 <div class="container">
   <h1 class="page-title">👨‍👩‍👧‍👦 Kumpulan Murid</h1>
-  <p class="page-subtitle">Pilih kelas dahulu, kemudian cipta kumpulan untuk murid-murid anda</p>
+  <p class="page-subtitle">Lihat kumpulan murid ikut kelas. Untuk cipta/sunting kumpulan, pergi ke <a href="/kelas.html">Pengurusan Kelas</a>.</p>
 
   <div class="class-selector" id="classSelector"></div>
 
   <div id="groupSection" style="display:none;">
-    <button class="btn btn-primary" onclick="openGroupModal()">➕ Cipta Kumpulan Baru</button>
     <div class="grid" id="groupGrid" style="margin-top:22px; grid-template-columns: repeat(auto-fill, minmax(300px,1fr));"></div>
   </div>
 </div>
 
-<div class="modal-overlay" id="groupModal">
-  <div class="modal-box">
-    <h3 id="groupModalTitle">Cipta Kumpulan Baru 👨‍👩‍👧‍👦</h3>
-    <div class="form-group">
-      <label>Nama Kumpulan</label>
-      <input type="text" id="groupNameInput" placeholder="Contoh: Kumpulan Bintang">
-    </div>
-    <div class="form-group">
-      <label>Gambar Kumpulan (pilihan)</label>
-      <input type="file" id="groupPhotoInput" accept="image/*">
-    </div>
-    <div class="form-group">
-      <label>Pilih Ahli Kumpulan</label>
-      <div class="checkbox-list" id="studentCheckList"></div>
-    </div>
-    <div class="form-group">
-      <label>Ketua Kumpulan (pilihan)</label>
-      <select id="groupLeaderSelect">
-        <option value="">-- Tiada Ketua --</option>
-      </select>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('groupModal')">Batal</button>
-      <button class="btn btn-primary" onclick="saveGroup()">Simpan</button>
-    </div>
-  </div>
-</div>
-
 <script src="/js/api.js"></script>
+<script src="/js/site.js"></script>
 <script src="/js/kumpulan.js"></script>
 </body>
 </html>

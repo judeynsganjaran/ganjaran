@@ -9,7 +9,7 @@
 <body>
 
 <nav class="navbar">
-  <a href="/index.html" class="brand">🌈 Ganjaran BM</a>
+  <a href="/index.html" class="brand"><span id="siteBrandEmoji">🌈</span><img id="siteBrandLogo" class="brand-logo" style="display:none;" alt="Logo"><span id="siteBrandText">Ganjaran BM</span></a>
   <div class="breadcrumbs">
     <a href="/leaderboard.html">🏆 Leaderboard</a>
     <a href="/kumpulan.html">👨‍👩‍👧‍👦 Kumpulan</a>
@@ -21,24 +21,65 @@
 
 <div class="container">
 
+  <!-- ===== VIEW: SENARAI KELAS ===== -->
   <div id="viewKelasList">
     <h1 class="page-title">🏫 Pengurusan Kelas</h1>
-    <p class="page-subtitle">Urus kelas dan senarai murid anda</p>
+    <p class="page-subtitle">Urus kelas, senarai murid, kumpulan, dan tetapan laman anda</p>
+
+    <!-- TETAPAN LAMAN -->
+    <div class="card settings-card">
+      <h2 style="margin-top:0;">⚙️ Tetapan Laman</h2>
+      <p style="opacity:.7; font-size:14px; margin-top:-8px;">Tukar nama laman & upload logo sekolah — akan dipaparkan di semua halaman.</p>
+      <div class="settings-row">
+        <div>
+          <label style="display:block; font-weight:600; margin-bottom:6px; font-size:14px;">Logo Sekolah</label>
+          <img id="logoPreview" class="logo-preview" src="" alt="Logo" style="display:none;">
+        </div>
+        <div class="form-group" style="margin-bottom:0; flex:1; min-width:180px;">
+          <label>Nama Laman</label>
+          <input type="text" id="siteNameInput" placeholder="Contoh: Ganjaran BM">
+        </div>
+        <label class="btn btn-purple" style="cursor:pointer;">
+          📤 Upload Logo
+          <input type="file" id="siteLogoInput" accept="image/*" style="display:none;">
+        </label>
+        <button class="btn btn-primary" onclick="saveSiteSettings()">💾 Simpan Tetapan</button>
+      </div>
+    </div>
+
+    <!-- EKSPORT DATA -->
+    <div class="card">
+      <h2 style="margin-top:0;">📄 Eksport Data (Backup)</h2>
+      <p style="opacity:.7; font-size:14px; margin-top:-8px;">Muat turun semua data murid, bintang & kumpulan dalam satu fail Word untuk simpanan sandaran.</p>
+      <button class="btn btn-secondary" onclick="exportWordBackup()">📥 Eksport Semua Data (Word)</button>
+    </div>
+
+    <h2>Senarai Kelas</h2>
     <button class="btn btn-primary" onclick="openClassModal()">➕ Cipta Kelas Baru</button>
     <div class="grid" id="classGrid" style="margin-top:22px;"></div>
   </div>
 
+  <!-- ===== VIEW: DETAIL KELAS ===== -->
   <div id="viewClassDetail" style="display:none;">
     <button class="btn btn-outline btn-sm" onclick="backToClassList()">⬅ Kembali ke Senarai Kelas</button>
     <h1 class="page-title" id="detailClassName" style="margin-top:14px;"></h1>
-    <p class="page-subtitle">Urus murid dalam kelas ini</p>
+    <p class="page-subtitle">Urus murid, kumpulan & gambar spin wheel untuk kelas ini</p>
     <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 10px;">
       <button class="btn btn-success" onclick="openStudentModal()">➕ Tambah Murid</button>
       <button class="btn btn-outline" onclick="openEditClassModal()">✏️ Sunting Nama Kelas</button>
     </div>
     <div class="grid" id="studentGrid" style="margin-top:22px;"></div>
 
+    <!-- URUS KUMPULAN -->
     <div class="card" style="margin-top:34px;">
+      <h2 style="margin-top:0;">👨‍👩‍👧‍👦 Urus Kumpulan</h2>
+      <p style="opacity:.7; font-size:14px; margin-top:-6px;">Cipta kumpulan, tetapkan ketua & ahli. Paparan untuk murid ada di halaman Kumpulan.</p>
+      <button class="btn btn-primary" onclick="openGroupModal()">➕ Cipta Kumpulan Baru</button>
+      <div class="grid" id="groupManageGrid" style="margin-top:18px; grid-template-columns: repeat(auto-fill, minmax(260px,1fr));"></div>
+    </div>
+
+    <!-- SET GAMBAR SPIN WHEEL -->
+    <div class="card" style="margin-top:20px;">
       <h2 style="margin-top:0;">🎡 Set Gambar Spin Wheel</h2>
       <p style="opacity:.7; font-size:14px; margin-top:-6px;">
         Upload gambar landscape (dah ada muka & nama) untuk kelas ini. Spin wheel akan pilih secara rawak dari set gambar ni.
@@ -57,6 +98,7 @@
 
 </div>
 
+<!-- MODAL: KELAS -->
 <div class="modal-overlay" id="classModal">
   <div class="modal-box">
     <h3 id="classModalTitle">Cipta Kelas Baru 🏫</h3>
@@ -66,11 +108,12 @@
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('classModal')">Batal</button>
-      <button class="btn btn-primary" id="classModalSaveBtn" onclick="saveClass()">Simpan</button>
+      <button class="btn btn-primary" onclick="saveClass()">Simpan</button>
     </div>
   </div>
 </div>
 
+<!-- MODAL: MURID -->
 <div class="modal-overlay" id="studentModal">
   <div class="modal-box">
     <h3 id="studentModalTitle">Tambah Murid ➕</h3>
@@ -84,12 +127,42 @@
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('studentModal')">Batal</button>
-      <button class="btn btn-primary" id="studentModalSaveBtn" onclick="saveStudent()">Simpan</button>
+      <button class="btn btn-primary" onclick="saveStudent()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: KUMPULAN -->
+<div class="modal-overlay" id="groupModal">
+  <div class="modal-box">
+    <h3 id="groupModalTitle">Cipta Kumpulan Baru 👨‍👩‍👧‍👦</h3>
+    <div class="form-group">
+      <label>Nama Kumpulan</label>
+      <input type="text" id="groupNameInput" placeholder="Contoh: Kumpulan Bintang">
+    </div>
+    <div class="form-group">
+      <label>Gambar Kumpulan (pilihan)</label>
+      <input type="file" id="groupPhotoInput" accept="image/*">
+    </div>
+    <div class="form-group">
+      <label>Pilih Ahli Kumpulan</label>
+      <div class="checkbox-list" id="studentCheckList"></div>
+    </div>
+    <div class="form-group">
+      <label>Ketua Kumpulan (pilihan)</label>
+      <select id="groupLeaderSelect">
+        <option value="">-- Tiada Ketua --</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('groupModal')">Batal</button>
+      <button class="btn btn-primary" onclick="saveGroup()">Simpan</button>
     </div>
   </div>
 </div>
 
 <script src="/js/api.js"></script>
+<script src="/js/site.js"></script>
 <script src="/js/kelas.js"></script>
 </body>
 </html>
