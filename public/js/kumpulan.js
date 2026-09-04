@@ -38,22 +38,63 @@ async function loadGroups() {
       grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">👨‍👩‍👧‍👦</div>Belum ada kumpulan untuk kelas ini.</div>`;
       return;
     }
-    grid.innerHTML = groups.map((g) => `
-      <div class="class-card" style="background:${g.color || '#5CC8FF'}">
-        <div>
-          <div class="class-name">${g.name}</div>
-          <div class="class-count">👥 ${g.members.length} ahli</div>
-          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">
-            ${g.members.slice(0, 6).map((m) => `<img src="${m.photo || placeholderSVG()}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid #fff;" title="${m.name}">`).join('')}
-            ${g.members.length > 6 ? `<span style="color:#fff;font-size:12px;align-self:center;">+${g.members.length - 6}</span>` : ''}
+    grid.innerHTML = groups.map((g) => {
+      const memberPoints = g.members.reduce((sum, m) => sum + (m.points || 0), 0);
+      const total = memberPoints + (g.bonusPoints || 0);
+      const leader = g.members.find((m) => m._id === g.leaderId) || null;
+      return `
+      <div class="card" style="border-top: 6px solid ${g.color || '#5CC8FF'};">
+        <div style="display:flex; gap:14px; align-items:center; margin-bottom:14px;">
+          <img src="${g.photo || placeholderSVG()}" style="width:64px;height:64px;border-radius:16px;object-fit:cover;background:#f2f2f2;flex-shrink:0;">
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:800; font-size:19px; font-family:'Baloo 2';">${g.name}</div>
+            <div style="font-size:13px; opacity:.65;">👥 ${g.members.length} ahli</div>
+          </div>
+          <div style="text-align:center; background:#FFF7EE; border-radius:14px; padding:8px 14px;">
+            <div style="display:flex; align-items:center; gap:4px; justify-content:center;">${starIconSVG(20)}<span style="font-weight:800; font-size:26px; font-family:'Baloo 2';">${total}</span></div>
+            <div style="font-size:10px; opacity:.6;">JUMLAH BINTANG</div>
           </div>
         </div>
-        <div style="display:flex; gap:6px; margin-top:14px;">
-          <button class="btn btn-sm btn-outline" onclick="openEditGroupModal('${g._id}')">✏️ Sunting</button>
+
+        ${leader ? `
+        <div style="display:flex; align-items:center; gap:8px; background:#FFF3D6; padding:8px 12px; border-radius:12px; margin-bottom:12px;">
+          <span style="font-size:18px;">👑</span>
+          <img src="${leader.photo || placeholderSVG()}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+          <span style="font-weight:700; font-size:14px;">${leader.name}</span>
+          <span style="font-size:11px; opacity:.6; margin-left:auto;">Ketua Kumpulan</span>
+        </div>` : ''}
+
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+          ${g.members.map((m) => `
+            <div style="display:flex; align-items:center; gap:10px; background:#F7F4FB; padding:8px 10px; border-radius:12px;">
+              <img src="${m.photo || placeholderSVG()}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+              <span style="font-weight:600; font-size:14px; flex:1;">${m.name}${m._id === g.leaderId ? ' 👑' : ''}</span>
+              <span style="display:flex; align-items:center; gap:3px; font-weight:700; font-size:13px; color:var(--dark);">${starIconSVG(14)}${m.points || 0}</span>
+            </div>
+          `).join('') || '<div style="opacity:.5; font-size:13px; padding:8px;">Belum ada ahli</div>'}
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; background:#EAF7FF; padding:8px 12px; border-radius:12px; margin-bottom:12px;">
+          <span style="font-size:12px; font-weight:600;">➕ Mata Bonus Kumpulan: <b>${g.bonusPoints || 0}</b></span>
+          <div style="display:flex; gap:6px;">
+            <button class="star-add-btn star-remove-btn" onclick="adjustBonus('${g._id}', -1)">➖</button>
+            <button class="star-add-btn" onclick="adjustBonus('${g._id}', 1)">➕</button>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-sm btn-outline" style="flex:1;" onclick="openEditGroupModal('${g._id}')">✏️ Sunting</button>
           <button class="btn btn-sm btn-danger" onclick="deleteGroup('${g._id}')">🗑️</button>
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function adjustBonus(groupId, delta) {
+  try {
+    await API.patch(`/groups/${groupId}/point`, { delta });
+    await loadGroups();
   } catch (e) { toast(e.message, 'error'); }
 }
 
@@ -65,17 +106,28 @@ function renderStudentCheckList(selectedIds = []) {
   }
   container.innerHTML = classStudents.map((s) => `
     <label class="checkbox-item">
-      <input type="checkbox" value="${s._id}" ${selectedIds.includes(s._id) ? 'checked' : ''}>
+      <input type="checkbox" class="member-checkbox" value="${s._id}" data-name="${s.name}" ${selectedIds.includes(s._id) ? 'checked' : ''} onchange="refreshLeaderOptions()">
       <img src="${s.photo || placeholderSVG()}">
       <span>${s.name}</span>
     </label>
   `).join('');
+  refreshLeaderOptions();
+}
+
+function refreshLeaderOptions(preserveLeaderId) {
+  const select = document.getElementById('groupLeaderSelect');
+  const currentValue = preserveLeaderId !== undefined ? preserveLeaderId : select.value;
+  const checked = Array.from(document.querySelectorAll('.member-checkbox:checked'));
+  select.innerHTML = `<option value="">-- Tiada Ketua --</option>` +
+    checked.map((c) => `<option value="${c.value}">${c.dataset.name}</option>`).join('');
+  if (checked.some((c) => c.value === currentValue)) select.value = currentValue;
 }
 
 function openGroupModal() {
   editingGroupId = null;
   document.getElementById('groupModalTitle').textContent = 'Cipta Kumpulan Baru 👨‍👩‍👧‍👦';
   document.getElementById('groupNameInput').value = '';
+  document.getElementById('groupPhotoInput').value = '';
   renderStudentCheckList([]);
   document.getElementById('groupModal').classList.add('show');
 }
@@ -86,21 +138,33 @@ async function openEditGroupModal(groupId) {
   const group = groups.find((g) => g._id === groupId);
   document.getElementById('groupModalTitle').textContent = 'Sunting Kumpulan ✏️';
   document.getElementById('groupNameInput').value = group ? group.name : '';
+  document.getElementById('groupPhotoInput').value = '';
   renderStudentCheckList(group ? group.members.map((m) => m._id) : []);
+  refreshLeaderOptions(group ? (group.leaderId || '') : '');
   document.getElementById('groupModal').classList.add('show');
 }
 
 async function saveGroup() {
   const name = document.getElementById('groupNameInput').value.trim();
   if (!name) return toast('Sila isi nama kumpulan', 'error');
-  const checked = Array.from(document.querySelectorAll('#studentCheckList input:checked')).map((el) => el.value);
+  const checked = Array.from(document.querySelectorAll('.member-checkbox:checked')).map((el) => el.value);
+  const leaderId = document.getElementById('groupLeaderSelect').value;
+  const photoFile = document.getElementById('groupPhotoInput').files[0];
+
+  const formData = new FormData();
+  formData.append('name', name);
+  formData.append('members', JSON.stringify(checked));
+  formData.append('leaderId', leaderId);
+  if (photoFile) formData.append('photo', photoFile);
 
   try {
     if (editingGroupId) {
-      await API.put(`/groups/${editingGroupId}`, { name, members: checked });
+      await API.put(`/groups/${editingGroupId}`, formData, true);
       toast('Kumpulan dikemaskini! ✅');
     } else {
-      await API.post('/groups', { name, classId: selectedClassId, members: checked, color: randomColor() });
+      formData.append('classId', selectedClassId);
+      formData.append('color', randomColor());
+      await API.post('/groups', formData, true);
       toast('Kumpulan berjaya dicipta! 🎉');
     }
     closeModal('groupModal');

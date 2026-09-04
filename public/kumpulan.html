@@ -27,7 +27,7 @@
 
   <div id="groupSection" style="display:none;">
     <button class="btn btn-primary" onclick="openGroupModal()">➕ Cipta Kumpulan Baru</button>
-    <div class="grid" id="groupGrid" style="margin-top:22px;"></div>
+    <div class="grid" id="groupGrid" style="margin-top:22px; grid-template-columns: repeat(auto-fill, minmax(300px,1fr));"></div>
   </div>
 </div>
 
@@ -39,8 +39,18 @@
       <input type="text" id="groupNameInput" placeholder="Contoh: Kumpulan Bintang">
     </div>
     <div class="form-group">
-      <label>Pilih Murid</label>
+      <label>Gambar Kumpulan (pilihan)</label>
+      <input type="file" id="groupPhotoInput" accept="image/*">
+    </div>
+    <div class="form-group">
+      <label>Pilih Ahli Kumpulan</label>
       <div class="checkbox-list" id="studentCheckList"></div>
+    </div>
+    <div class="form-group">
+      <label>Ketua Kumpulan (pilihan)</label>
+      <select id="groupLeaderSelect">
+        <option value="">-- Tiada Ketua --</option>
+      </select>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('groupModal')">Batal</button>

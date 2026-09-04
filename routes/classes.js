@@ -1,24 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
 const Class = require('../models/Class');
 const Student = require('../models/Student');
 const Group = require('../models/Group');
 const SpinImage = require('../models/SpinImage');
 const upload = require('../middleware/upload');
-
-const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
-
-function removeLocalFile(fileUrl) {
-  try {
-    if (!fileUrl || !fileUrl.startsWith('/uploads/')) return;
-    const filePath = path.join(uploadDir, path.basename(fileUrl));
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-  } catch (err) {
-    console.error('Gagal padam fail lokal:', err.message);
-  }
-}
+const { toDataUri } = upload;
 
 // ===== KELAS =====
 
@@ -60,8 +47,6 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const classId = req.params.id;
-    const spinImgs = await SpinImage.find({ classId });
-    spinImgs.forEach((img) => removeLocalFile(img.imageUrl));
     await SpinImage.deleteMany({ classId });
     await Student.deleteMany({ classId });
     await Group.deleteMany({ classId });
@@ -90,7 +75,7 @@ router.post(
     try {
       const { name } = req.body;
       if (!name) return res.status(400).json({ error: 'Nama murid diperlukan' });
-      const photo = req.files?.photo ? `/uploads/${req.files.photo[0].filename}` : '';
+      const photo = req.files?.photo ? toDataUri(req.files.photo[0]) : '';
       const student = await Student.create({ name, classId: req.params.classId, photo });
       res.status(201).json(student);
     } catch (err) {
@@ -110,10 +95,7 @@ router.put(
 
       const update = {};
       if (name) update.name = name;
-      if (req.files?.photo) {
-        update.photo = `/uploads/${req.files.photo[0].filename}`;
-        removeLocalFile(existing.photo);
-      }
+      if (req.files?.photo) update.photo = toDataUri(req.files.photo[0]);
 
       const student = await Student.findByIdAndUpdate(req.params.studentId, update, { new: true });
       res.json(student);
@@ -125,8 +107,7 @@ router.put(
 
 router.delete('/students/:studentId', async (req, res) => {
   try {
-    const student = await Student.findByIdAndDelete(req.params.studentId);
-    if (student) removeLocalFile(student.photo);
+    await Student.findByIdAndDelete(req.params.studentId);
     await Group.updateMany({}, { $pull: { members: req.params.studentId } });
     res.json({ message: 'Murid berjaya dipadam' });
   } catch (err) {

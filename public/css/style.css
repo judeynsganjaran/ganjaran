@@ -254,12 +254,16 @@ h1, h2, h3, .brand {
 }
 .src-photo { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; background: #f2f2f2; flex-shrink: 0; }
 .src-name { font-weight: 700; font-size: 17px; flex: 1; min-width: 100px; }
+.src-level-badge {
+  display: inline-block; margin-top: 4px; background: var(--purple); color: #fff;
+  font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+}
 
 .star-counter {
   display: flex; align-items: center; gap: 10px; background: #FFF7EE;
   padding: 8px 14px; border-radius: 999px;
 }
-.star-counter .count { font-weight: 800; font-size: 30px; font-family: 'Baloo 2'; min-width: 40px; text-align: center; }
+.star-counter .count { font-weight: 800; font-size: 40px; font-family: 'Baloo 2'; min-width: 52px; text-align: center; line-height: 1; }
 .star-add-btn {
   width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
   background: var(--green); color: #fff; font-size: 14px; flex-shrink: 0; box-shadow: 0 3px 0 rgba(0,0,0,0.1);

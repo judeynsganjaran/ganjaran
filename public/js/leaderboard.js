@@ -50,15 +50,19 @@ async function loadIndividu(classId) {
     }
     list.innerHTML = students.map((s, i) => {
       const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+      const currentTier = getCurrentTier(s.points);
       return `
       <div class="student-reward-card ${rankClass}">
         <div class="src-header">
           <div class="src-rank">${i + 1}</div>
           <img class="src-photo" src="${s.photo || placeholderSVG()}" alt="${s.name}">
-          <div class="src-name">${s.name}</div>
+          <div class="src-name">
+            ${s.name}
+            ${currentTier ? `<div class="src-level-badge">🏅 Tahap ${currentTier.levelNumber}${currentTier.name ? ' — ' + currentTier.name : ''}</div>` : ''}
+          </div>
           <div class="star-counter">
             <button class="star-add-btn star-remove-btn" title="Kurang bintang" onclick="addPoint('${s._id}', -1)">➖</button>
-            ${starIconSVG(28)}
+            ${starIconSVG(30)}
             <span class="count">${s.points}</span>
             <button class="star-add-btn" title="Tambah bintang" onclick="addPoint('${s._id}', 1)">➕</button>
           </div>
@@ -67,6 +71,13 @@ async function loadIndividu(classId) {
       </div>`;
     }).join('');
   } catch (e) { toast(e.message, 'error'); }
+}
+
+function getCurrentTier(points) {
+  // Cari tahap tertinggi yang sudah dicapai murid
+  const eligible = rewardTiers.filter((t) => points >= t.minStars);
+  if (eligible.length === 0) return null;
+  return eligible.reduce((a, b) => (b.levelNumber > a.levelNumber ? b : a));
 }
 
 function renderStickerGrid(points) {
@@ -120,6 +131,7 @@ async function loadKumpulan(classId) {
       return `
       <div class="group-circle-card">
         ${i === 0 ? '<div class="group-rank-badge">👑 Mendahului</div>' : `<div class="group-rank-badge" style="background:#B18CFF;">#${i + 1}</div>`}
+        ${g.photo ? `<img src="${g.photo}" style="width:48px;height:48px;border-radius:12px;object-fit:cover;margin-bottom:8px;">` : ''}
         <div class="circle-progress">
           <svg viewBox="0 0 140 140">
             <circle class="circle-bg" cx="70" cy="70" r="${radius}"></circle>
@@ -134,7 +146,7 @@ async function loadKumpulan(classId) {
           </div>
         </div>
         <div class="group-name">${g.name}</div>
-        <div style="font-size:13px; opacity:.65;">👥 ${g.members.length} ahli</div>
+        <div style="font-size:13px; opacity:.65;">👥 ${g.members.length} ahli${g.leader ? ` · 👑 ${g.leader.name}` : ''}</div>
       </div>`;
     }).join('');
 

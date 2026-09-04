@@ -1,24 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
 const RewardTier = require('../models/RewardTier');
 const RewardSettings = require('../models/RewardSettings');
 const upload = require('../middleware/upload');
+const { toDataUri } = upload;
 
-const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
-
-function removeLocalFile(fileUrl) {
-  try {
-    if (!fileUrl || !fileUrl.startsWith('/uploads/')) return;
-    const filePath = path.join(uploadDir, path.basename(fileUrl));
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-  } catch (err) {
-    console.error('Gagal padam fail lokal:', err.message);
-  }
-}
-
-// Tahap lalai (default) - guru boleh ubah nama/nilai bintang & upload sticker sendiri kemudian
 const DEFAULT_TIERS = [
   { levelNumber: 1, name: 'Tahap 1', minStars: 0 },
   { levelNumber: 2, name: 'Tahap 2', minStars: 4 },
@@ -34,7 +20,6 @@ const DEFAULT_TIERS = [
   { levelNumber: 12, name: 'Tahap 12', minStars: 44 }
 ];
 
-// Dapatkan semua tahap (auto-cipta 12 tahap lalai kali pertama jika kosong)
 router.get('/', async (req, res) => {
   try {
     let tiers = await RewardTier.find().sort({ levelNumber: 1 });
@@ -48,7 +33,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Kemaskini satu tahap: nama / nilai bintang / upload sticker PNG
 router.put('/:id', upload.single('sticker'), async (req, res) => {
   try {
     const { name, minStars } = req.body;
@@ -58,10 +42,7 @@ router.put('/:id', upload.single('sticker'), async (req, res) => {
     const update = {};
     if (name !== undefined) update.name = name;
     if (minStars !== undefined) update.minStars = Number(minStars);
-    if (req.file) {
-      update.stickerUrl = `/uploads/${req.file.filename}`;
-      removeLocalFile(existing.stickerUrl);
-    }
+    if (req.file) update.stickerUrl = toDataUri(req.file);
 
     const tier = await RewardTier.findByIdAndUpdate(req.params.id, update, { new: true });
     res.json(tier);
@@ -69,8 +50,6 @@ router.put('/:id', upload.single('sticker'), async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// ===== POSTER HADIAH (gambar besar) =====
 
 router.get('/settings/poster', async (req, res) => {
   try {
@@ -87,8 +66,7 @@ router.put('/settings/poster', upload.single('poster'), async (req, res) => {
     let settings = await RewardSettings.findOne();
     if (!settings) settings = await RewardSettings.create({});
     if (req.file) {
-      removeLocalFile(settings.posterUrl);
-      settings.posterUrl = `/uploads/${req.file.filename}`;
+      settings.posterUrl = toDataUri(req.file);
       await settings.save();
     }
     res.json(settings);

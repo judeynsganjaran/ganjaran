@@ -14,17 +14,21 @@ router.get('/individu/:classId', async (req, res) => {
 
 router.get('/kumpulan/:classId', async (req, res) => {
   try {
-    const groups = await Group.find({ classId: req.params.classId }).populate('members');
+    const groups = await Group.find({ classId: req.params.classId }).populate('members').populate('leaderId');
     const result = groups
       .map((g) => {
-        const totalPoints = g.members.reduce((sum, m) => sum + (m.points || 0), 0);
+        const memberPoints = g.members.reduce((sum, m) => sum + (m.points || 0), 0);
+        const totalPoints = memberPoints + (g.bonusPoints || 0);
         return {
           _id: g._id,
           name: g.name,
           color: g.color,
+          photo: g.photo,
+          leader: g.leaderId,
           members: g.members,
-          totalPoints,
-          avgPoints: g.members.length ? totalPoints / g.members.length : 0
+          memberPoints,
+          bonusPoints: g.bonusPoints || 0,
+          totalPoints
         };
       })
       .sort((a, b) => b.totalPoints - a.totalPoints);
