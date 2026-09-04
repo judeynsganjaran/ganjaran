@@ -13,7 +13,6 @@ async function loadClasses() {
       grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">🏫</div>Belum ada kelas. Cipta kelas pertama anda!</div>`;
       return;
     }
-    // dapatkan bilangan murid setiap kelas
     const counts = await Promise.all(currentClasses.map((c) => API.get(`/classes/${c._id}/students`)));
     grid.innerHTML = currentClasses.map((c, i) => `
       <div class="class-card" style="background:${c.color || randomColor()}" onclick="openClassDetail('${c._id}')">
@@ -99,12 +98,6 @@ async function loadStudents() {
     `).join('');
     window.__studentsCache = students;
   } catch (e) { toast(e.message, 'error'); }
-}
-
-function placeholderSVG() {
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#FFE8A3"/><text x="50" y="60" font-size="40" text-anchor="middle">🙂</text></svg>
-  `);
 }
 
 function openStudentModal() {

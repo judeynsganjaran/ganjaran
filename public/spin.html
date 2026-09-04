@@ -15,23 +15,22 @@
     <a href="/kumpulan.html">👨‍👩‍👧‍👦 Kumpulan</a>
     <a href="/kelas.html">🏫 Pengurusan Kelas</a>
     <a href="/spin.html" class="active">🎡 Spin Wheel</a>
+    <a href="/hadiah.html">🎁 Hadiah</a>
   </div>
 </nav>
 
 <div class="container">
   <h1 class="page-title">🎡 Spin Wheel Ajaib</h1>
-  <p class="page-subtitle">Pilih kelas, tekan mula, dan biar keajaiban berlaku!</p>
+  <p class="page-subtitle">Pilih kelas, kemudian tekan pada gambar untuk mula spin!</p>
 
   <div class="class-selector" id="classSelector"></div>
 
-  <div class="card spin-stage">
-    <div class="spin-display-frame" id="spinFrame">
+  <div class="card spin-stage" id="spinStage">
+    <div class="spin-display-frame" id="spinFrame" onclick="handleFrameClick()">
       <img id="spinImg" src="" alt="">
+      <div class="spin-tap-hint" id="spinTapHint">👆 Tekan untuk Spin!</div>
     </div>
-    <div class="spin-name-tag" id="spinNameTag">Sedia untuk spin? 🎉</div>
-    <button class="btn btn-warning" id="spinBtn" onclick="startSpin()" style="margin-top:20px; font-size:17px; padding:14px 34px;">
-      🎲 Mula Spin!
-    </button>
+    <button class="spin-fullscreen-btn" onclick="toggleFullscreen()">🔍 Skrin Penuh</button>
     <div id="spinCount" style="margin-top:10px; font-size:13px; opacity:.6;"></div>
   </div>
 

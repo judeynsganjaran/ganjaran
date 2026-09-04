@@ -46,10 +46,23 @@ const API = {
   }
 };
 
-// Palet warna rawak untuk kad kelas / kumpulan
 const CARD_COLORS = ['#FF6FA5', '#5CC8FF', '#FFA45C', '#6BE6A6', '#B18CFF', '#FF9E9E', '#5CE1E6'];
 function randomColor() {
   return CARD_COLORS[Math.floor(Math.random() * CARD_COLORS.length)];
+}
+
+function placeholderSVG() {
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#FFE8A3"/><text x="50" y="60" font-size="40" text-anchor="middle">🙂</text></svg>
+  `);
+}
+
+// Icon bintang generik (SVG dalaman - bukan gambar/sticker berhakcipta)
+function starIconSVG(size = 20) {
+  return `<svg class="star-icon-svg" width="${size}" height="${size}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2 L14.9 8.6 L22 9.3 L16.7 14.1 L18.3 21.2 L12 17.4 L5.7 21.2 L7.3 14.1 L2 9.3 L9.1 8.6 Z"
+      fill="#FFD75C" stroke="#4A3B52" stroke-width="1.2" stroke-linejoin="round"/>
+  </svg>`;
 }
 
 function toast(msg, type = 'success') {

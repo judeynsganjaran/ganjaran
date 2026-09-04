@@ -22,7 +22,6 @@ function removeLocalFile(fileUrl) {
 
 // ===== KELAS =====
 
-// Dapatkan semua kelas
 router.get('/', async (req, res) => {
   try {
     const classes = await Class.find().sort({ createdAt: -1 });
@@ -32,7 +31,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Cipta kelas baru
 router.post('/', async (req, res) => {
   try {
     const { name, color } = req.body;
@@ -44,7 +42,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Sunting kelas (nama)
 router.put('/:id', async (req, res) => {
   try {
     const { name, color } = req.body;
@@ -60,7 +57,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Padam kelas (padam juga murid, kumpulan & gambar spin dalam kelas tu)
 router.delete('/:id', async (req, res) => {
   try {
     const classId = req.params.id;
@@ -76,9 +72,8 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// ===== MURID (dalam kelas) =====
+// ===== MURID =====
 
-// Dapatkan semua murid ikut kelas
 router.get('/:classId/students', async (req, res) => {
   try {
     const students = await Student.find({ classId: req.params.classId }).sort({ name: 1 });
@@ -88,7 +83,6 @@ router.get('/:classId/students', async (req, res) => {
   }
 });
 
-// Tambah murid + gambar
 router.post(
   '/:classId/students',
   upload.fields([{ name: 'photo', maxCount: 1 }]),
@@ -96,14 +90,8 @@ router.post(
     try {
       const { name } = req.body;
       if (!name) return res.status(400).json({ error: 'Nama murid diperlukan' });
-
       const photo = req.files?.photo ? `/uploads/${req.files.photo[0].filename}` : '';
-
-      const student = await Student.create({
-        name,
-        classId: req.params.classId,
-        photo
-      });
+      const student = await Student.create({ name, classId: req.params.classId, photo });
       res.status(201).json(student);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -111,7 +99,6 @@ router.post(
   }
 );
 
-// Sunting murid (nama / gambar)
 router.put(
   '/students/:studentId',
   upload.fields([{ name: 'photo', maxCount: 1 }]),
@@ -123,7 +110,6 @@ router.put(
 
       const update = {};
       if (name) update.name = name;
-
       if (req.files?.photo) {
         update.photo = `/uploads/${req.files.photo[0].filename}`;
         removeLocalFile(existing.photo);
@@ -137,7 +123,6 @@ router.put(
   }
 );
 
-// Padam murid
 router.delete('/students/:studentId', async (req, res) => {
   try {
     const student = await Student.findByIdAndDelete(req.params.studentId);

@@ -15,12 +15,12 @@
     <a href="/kumpulan.html">👨‍👩‍👧‍👦 Kumpulan</a>
     <a href="/kelas.html" class="active">🏫 Pengurusan Kelas</a>
     <a href="/spin.html">🎡 Spin Wheel</a>
+    <a href="/hadiah.html">🎁 Hadiah</a>
   </div>
 </nav>
 
 <div class="container">
 
-  <!-- ===== VIEW: SENARAI KELAS ===== -->
   <div id="viewKelasList">
     <h1 class="page-title">🏫 Pengurusan Kelas</h1>
     <p class="page-subtitle">Urus kelas dan senarai murid anda</p>
@@ -28,7 +28,6 @@
     <div class="grid" id="classGrid" style="margin-top:22px;"></div>
   </div>
 
-  <!-- ===== VIEW: DETAIL KELAS (MURID) ===== -->
   <div id="viewClassDetail" style="display:none;">
     <button class="btn btn-outline btn-sm" onclick="backToClassList()">⬅ Kembali ke Senarai Kelas</button>
     <h1 class="page-title" id="detailClassName" style="margin-top:14px;"></h1>
@@ -39,7 +38,6 @@
     </div>
     <div class="grid" id="studentGrid" style="margin-top:22px;"></div>
 
-    <!-- ===== SET GAMBAR SPIN WHEEL ===== -->
     <div class="card" style="margin-top:34px;">
       <h2 style="margin-top:0;">🎡 Set Gambar Spin Wheel</h2>
       <p style="opacity:.7; font-size:14px; margin-top:-6px;">
@@ -59,7 +57,6 @@
 
 </div>
 
-<!-- MODAL: CIPTA / SUNTING KELAS -->
 <div class="modal-overlay" id="classModal">
   <div class="modal-box">
     <h3 id="classModalTitle">Cipta Kelas Baru 🏫</h3>
@@ -74,7 +71,6 @@
   </div>
 </div>
 
-<!-- MODAL: TAMBAH / SUNTING MURID -->
 <div class="modal-overlay" id="studentModal">
   <div class="modal-box">
     <h3 id="studentModalTitle">Tambah Murid ➕</h3>

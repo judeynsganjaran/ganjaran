@@ -16,7 +16,6 @@ async function loadClassesForSelector() {
     sel.innerHTML = allClasses.map((c) => `
       <div class="class-chip" id="chip-${c._id}" onclick="selectClass('${c._id}')">${c.name}</div>
     `).join('');
-    // auto-pilih kelas pertama
     selectClass(allClasses[0]._id);
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -56,12 +55,6 @@ async function loadGroups() {
       </div>
     `).join('');
   } catch (e) { toast(e.message, 'error'); }
-}
-
-function placeholderSVG() {
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#FFE8A3"/><text x="50" y="60" font-size="40" text-anchor="middle">🙂</text></svg>
-  `);
 }
 
 function renderStudentCheckList(selectedIds = []) {

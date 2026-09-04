@@ -17,7 +17,6 @@ function removeLocalFile(fileUrl) {
   }
 }
 
-// Dapatkan semua gambar spin wheel untuk satu kelas
 router.get('/:classId', async (req, res) => {
   try {
     const images = await SpinImage.find({ classId: req.params.classId }).sort({ createdAt: -1 });
@@ -27,14 +26,12 @@ router.get('/:classId', async (req, res) => {
   }
 });
 
-// Upload BANYAK gambar sekaligus (bulk) untuk satu kelas
 router.post('/:classId/upload', upload.array('images', 60), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'Sila pilih sekurang-kurangnya satu gambar' });
     }
     const classId = req.params.classId;
-
     const uploadedDocs = await Promise.all(
       req.files.map((file) =>
         SpinImage.create({
@@ -44,14 +41,12 @@ router.post('/:classId/upload', upload.array('images', 60), async (req, res) => 
         })
       )
     );
-
     res.status(201).json(uploadedDocs);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Padam satu gambar
 router.delete('/:id', async (req, res) => {
   try {
     const img = await SpinImage.findByIdAndDelete(req.params.id);
@@ -62,7 +57,6 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Padam SEMUA gambar untuk satu kelas (kosongkan set)
 router.delete('/class/:classId/clear', async (req, res) => {
   try {
     const images = await SpinImage.find({ classId: req.params.classId });

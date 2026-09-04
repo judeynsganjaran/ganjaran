@@ -1,12 +1,13 @@
 # 🌈 Sistem Ganjaran Bahasa Melayu
 
-Sistem ganjaran interaktif untuk guru prasekolah — Leaderboard bintang, Kumpulan, Pengurusan Kelas & Spin Wheel dengan animasi gempak!
+Sistem ganjaran interaktif untuk guru prasekolah — Leaderboard bintang + sticker, Kumpulan, Pengurusan Kelas, Spin Wheel & Hadiah.
 
 ## ✨ Ciri-ciri
-- **Pengurusan Kelas** — cipta/sunting kelas, urus murid (nama + gambar)
+- **Pengurusan Kelas** — cipta/sunting kelas, urus murid (nama + gambar), urus set gambar spin wheel
 - **Kumpulan** — bina kumpulan murid ikut kelas
-- **Leaderboard** — individu (progress bar + bintang bertingkat) & kumpulan (circle progress)
-- **Spin Wheel** — upload set gambar landscape (bulk) ikut kelas, animasi rawak gempak (bunyi kling, zoom, confetti, emoji celebrasi)
+- **Leaderboard** — individu (bintang + sticker unlock) & kumpulan (circle progress)
+- **Spin Wheel** — tekan pada gambar untuk spin, animasi rawak gempak + skrin penuh
+- **Hadiah** — urus poster hadiah besar & sticker untuk setiap tahap bintang (guru upload sticker sendiri)
 
 ## 🛠️ Teknologi
 - Backend: Node.js + Express
@@ -37,10 +38,7 @@ Buka `http://localhost:3000`
 2. Cipta **Cluster** percuma (M0)
 3. **Database Access** → cipta user + password
 4. **Network Access** → tambah `0.0.0.0/0` (benarkan semua IP, untuk Render)
-5. **Connect** → **Drivers** → salin connection string, contoh:
-   ```
-   mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/sistem_ganjaran?retryWrites=true&w=majority
-   ```
+5. **Connect** → **Drivers** → salin connection string
 6. Tampal dalam `.env` sebagai `MONGODB_URI`
 
 ---
@@ -48,58 +46,65 @@ Buka `http://localhost:3000`
 ## 3️⃣ Push ke GitHub
 
 ```bash
-git init
 git add .
-git commit -m "Sistem Ganjaran BM - initial commit"
-git branch -M main
-git remote add origin https://github.com/USERNAME/NAMA-REPO.git
-git push -u origin main
+git commit -m "Update: sticker system, hadiah page, spin wheel baharu"
+git push
 ```
-
-> ⚠️ Fail `.env` **tidak** akan di-push (sudah dalam `.gitignore`) — ini penting untuk keselamatan.
 
 ---
 
 ## 4️⃣ Deploy ke Render
 
-1. Daftar/log masuk di [render.com](https://render.com)
-2. **New +** → **Web Service**
-3. Sambungkan repo GitHub anda
-4. Tetapan:
-   - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
-   - **Environment:** Node
-5. Tambah **Environment Variable**:
-   - Key: `MONGODB_URI`
-   - Value: (connection string Atlas anda)
-6. Klik **Create Web Service** — tunggu deploy siap (~2-3 minit)
-7. Laman anda akan hidup di `https://nama-app-anda.onrender.com`
+1. [render.com](https://render.com) → **New +** → **Web Service**
+2. Sambungkan repo GitHub anda
+3. **Build Command:** `npm install` | **Start Command:** `npm start`
+4. Tambah Environment Variable: `MONGODB_URI`
+5. Create Web Service — tunggu deploy (~2-3 minit)
 
-### ⚠️ Nota penting tentang gambar upload (Render Free Tier)
-Render free tier menggunakan **ephemeral disk** — fail yang diupload (`public/uploads`) akan **hilang** bila server restart/redeploy. Untuk kegunaan harian di kelas ia berfungsi baik — cuma gambar (foto murid & set gambar spin wheel) perlu diupload semula selepas setiap redeploy/restart server.
-
-> 💡 Kalau nanti cikgu nak selesaikan ini secara kekal (gambar tak hilang langsung), boleh tanya semula — ada penyelesaian guna storan awan yang lebih mudah setup.
+### ⚠️ Nota tentang gambar upload (Render Free Tier)
+Gambar (foto murid, set spin wheel, sticker, poster) akan **hilang** bila server restart/redeploy (ephemeral disk). Untuk kegunaan harian ia okay — upload semula bila perlu.
 
 ---
+
+## 🎁 Cara guna Hadiah & Sticker
+
+1. Pergi **Hadiah** → upload **poster besar** (gambar yang tunjuk semua sticker & tahap)
+2. Untuk setiap 12 tahap (kad kecil), tetapkan:
+   - **Nama tahap** (contoh: "Tahap 1")
+   - **Nilai bintang minimum** (contoh: 0, 4, 8, 11...)
+   - **Upload sticker PNG** (guna PNG latar belakang telus supaya kelihatan kemas)
+3. Klik **Simpan** pada setiap kad
+4. Di **Leaderboard → Individu**, sticker akan **unlock automatik** bila bilangan bintang murid capai nilai minimum tahap tersebut
+
+## ⭐ Cara guna Leaderboard Individu
+
+- Setiap murid ada butang ➕/➖ untuk tambah/kurang bintang
+- Grid 12 kotak (6 lajur x 2 baris) tunjuk sticker yang sudah/belum unlock (🔒 = belum capai)
+
+## 🎡 Cara guna Spin Wheel
+
+1. Pergi **Pengurusan Kelas** → pilih kelas → "Set Gambar Spin Wheel" → upload banyak gambar sekali gus
+2. Pergi **Spin Wheel** → pilih kelas → **tekan terus pada gambar** untuk mula spin
+3. Guna butang **Skrin Penuh** untuk paparan lebih besar semasa mengajar
 
 ## 📁 Struktur Fail
 
 ```
 project/
-├── server.js              # Entry point Express
-├── config/db.js           # Sambungan MongoDB
-├── models/                # Schema Mongoose (Class, Student, Group, SpinImage)
+├── server.js
+├── config/db.js
+├── models/                # Class, Student, Group, SpinImage, RewardTier, RewardSettings
 ├── routes/                # API endpoints
-├── middleware/upload.js   # Multer upload gambar (disk storage)
+├── middleware/upload.js
 └── public/
-    ├── index.html          # Dashboard utama
-    ├── kelas.html          # Pengurusan Kelas
-    ├── kumpulan.html       # Kumpulan
-    ├── leaderboard.html    # Leaderboard
-    ├── spin.html           # Spin Wheel
-    ├── css/style.css       # Tema ceria prasekolah
-    ├── uploads/            # Gambar yang diupload (sementara, Render free tier)
-    └── js/                 # Logik setiap halaman
+    ├── index.html
+    ├── kelas.html
+    ├── kumpulan.html
+    ├── leaderboard.html
+    ├── spin.html
+    ├── hadiah.html
+    ├── css/style.css
+    └── js/
 ```
 
 ## 🔌 API Endpoints Ringkas
@@ -114,16 +119,11 @@ project/
 | GET | `/api/leaderboard/individu/:classId` | Leaderboard individu |
 | GET | `/api/leaderboard/kumpulan/:classId` | Leaderboard kumpulan |
 | PATCH | `/api/leaderboard/student/:id/point` | Tambah/kurang bintang |
-| GET | `/api/spin-images/:classId` | Senarai set gambar spin wheel ikut kelas |
-| POST | `/api/spin-images/:classId/upload` | Upload BANYAK gambar sekaligus (bulk) |
+| GET | `/api/spin-images/:classId` | Set gambar spin wheel ikut kelas |
+| POST | `/api/spin-images/:classId/upload` | Upload banyak gambar sekaligus |
 | DELETE | `/api/spin-images/:id` | Padam satu gambar spin |
-| DELETE | `/api/spin-images/class/:classId/clear` | Kosongkan semua gambar spin kelas |
-
-## 🎡 Cara guna Spin Wheel
-
-1. Pergi **Pengurusan Kelas** → pilih kelas → scroll ke bahagian **"Set Gambar Spin Wheel"**
-2. Klik **Upload Gambar** → pilih banyak fail gambar sekali gus (gambar landscape yang dah ada muka & nama murid tertulis)
-3. Pergi ke **Spin Wheel** → pilih kelas → tekan **Mula Spin!**
-4. Sistem akan pilih SATU gambar secara rawak dari set yang diupload tadi, dengan animasi kocok + bunyi + confetti
+| GET | `/api/reward-tiers` | Senarai 12 tahap bintang & sticker |
+| PUT | `/api/reward-tiers/:id` | Kemaskini tahap (nama/nilai/sticker) |
+| GET/PUT | `/api/reward-tiers/settings/poster` | Poster hadiah besar |
 
 Selamat mengajar! 🎉📚

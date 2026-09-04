@@ -3,7 +3,6 @@ const router = express.Router();
 const Student = require('../models/Student');
 const Group = require('../models/Group');
 
-// Leaderboard individu ikut kelas (susun ikut point tertinggi)
 router.get('/individu/:classId', async (req, res) => {
   try {
     const students = await Student.find({ classId: req.params.classId }).sort({ points: -1 });
@@ -13,7 +12,6 @@ router.get('/individu/:classId', async (req, res) => {
   }
 });
 
-// Leaderboard kumpulan ikut kelas (jumlah point semua ahli, susun tertinggi)
 router.get('/kumpulan/:classId', async (req, res) => {
   try {
     const groups = await Group.find({ classId: req.params.classId }).populate('members');
@@ -36,10 +34,9 @@ router.get('/kumpulan/:classId', async (req, res) => {
   }
 });
 
-// Tambah / kurang bintang (point) murid secara manual
 router.patch('/student/:id/point', async (req, res) => {
   try {
-    const { delta } = req.body; // contoh: +1 atau -1
+    const { delta } = req.body;
     const student = await Student.findById(req.params.id);
     if (!student) return res.status(404).json({ error: 'Murid tidak dijumpai' });
     student.points = Math.max(0, student.points + (delta || 1));

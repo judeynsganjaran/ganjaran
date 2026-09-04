@@ -5,12 +5,6 @@ let isSpinning = false;
 
 document.addEventListener('DOMContentLoaded', initSpinPage);
 
-function placeholderSVG() {
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="320" height="200"><rect width="320" height="200" fill="#FFE8A3"/><text x="160" y="115" font-size="60" text-anchor="middle">🎡</text></svg>
-  `);
-}
-
 async function initSpinPage() {
   try {
     spinClasses = await API.get('/classes');
@@ -34,31 +28,30 @@ async function spinSelectClass(classId) {
   spinImages = await API.get(`/spin-images/${classId}`);
   document.getElementById('spinCount').textContent = `${spinImages.length} gambar dalam set kelas ini`;
   document.getElementById('spinImg').src = spinImages[0] ? spinImages[0].imageUrl : placeholderSVG();
-  document.getElementById('spinNameTag').textContent = spinImages.length ? 'Sedia untuk spin? 🎉' : 'Tiada gambar spin untuk kelas ini — upload di Pengurusan Kelas';
   document.getElementById('spinFrame').classList.remove('winner');
+  document.getElementById('spinTapHint').textContent = spinImages.length ? '👆 Tekan untuk Spin!' : '⚠️ Upload gambar di Pengurusan Kelas dahulu';
+}
+
+function handleFrameClick() {
+  if (isSpinning) return;
+  startSpin();
 }
 
 async function startSpin() {
-  if (isSpinning) return;
   if (!spinImages || spinImages.length === 0) {
     toast('Tiada gambar untuk spin — upload dulu di Pengurusan Kelas', 'error');
     return;
   }
   isSpinning = true;
-  document.getElementById('spinBtn').disabled = true;
-  document.getElementById('spinBtn').style.opacity = '0.6';
   const frame = document.getElementById('spinFrame');
   const img = document.getElementById('spinImg');
-  const nameTag = document.getElementById('spinNameTag');
 
   frame.classList.remove('winner');
   frame.classList.add('spinning');
-  nameTag.textContent = '🎲 Mengocok...';
 
   const winnerIndex = Math.floor(Math.random() * spinImages.length);
   const winner = spinImages[winnerIndex];
 
-  // ===== FASA 1: pusingan pantas (macam slot machine), makin lama makin perlahan =====
   const totalDurationMs = 3200;
   const startTime = performance.now();
   let lastIdx = -1;
@@ -80,7 +73,6 @@ async function startSpin() {
 
       setTimeout(() => requestAnimationFrame(tickFrame), currentDelay);
     } else {
-      // ===== FASA 2: BERHENTI PADA PEMENANG =====
       finishSpin(winner);
     }
   }
@@ -90,30 +82,22 @@ async function startSpin() {
 function finishSpin(winner) {
   const frame = document.getElementById('spinFrame');
   const img = document.getElementById('spinImg');
-  const nameTag = document.getElementById('spinNameTag');
 
   frame.classList.remove('spinning');
   img.src = winner.imageUrl;
-  nameTag.innerHTML = `🎉 Tahniah! 🎉`;
 
-  // efek zoom-in pemenang
-  void frame.offsetWidth; // reset animation
+  void frame.offsetWidth;
   frame.classList.add('winner');
 
-  // bunyi & confetti kejayaan
   playTada();
   fireConfetti(2800);
-
-  // habuk-habuk emoji birthday melompat keluar
   spawnCelebrationEmojis();
 
   isSpinning = false;
-  document.getElementById('spinBtn').disabled = false;
-  document.getElementById('spinBtn').style.opacity = '1';
 }
 
 function spawnCelebrationEmojis() {
-  const stage = document.querySelector('.spin-stage');
+  const stage = document.getElementById('spinStage');
   const emojis = ['🎉', '🎊', '⭐', '🥳', '🎈', '✨'];
   for (let i = 0; i < 18; i++) {
     const span = document.createElement('span');
@@ -131,5 +115,15 @@ function spawnCelebrationEmojis() {
       span.style.opacity = '0';
     });
     setTimeout(() => span.remove(), 1300);
+  }
+}
+
+// ===== SKRIN PENUH =====
+function toggleFullscreen() {
+  const stage = document.getElementById('spinStage');
+  if (!document.fullscreenElement) {
+    stage.requestFullscreen?.() || stage.webkitRequestFullscreen?.();
+  } else {
+    document.exitFullscreen?.() || document.webkitExitFullscreen?.();
   }
 }

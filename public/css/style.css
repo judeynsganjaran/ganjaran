@@ -50,6 +50,7 @@ h1, h2, h3, .brand {
   display: flex;
   align-items: center;
   gap: 8px;
+  text-decoration: none;
 }
 
 .breadcrumbs {
@@ -205,7 +206,7 @@ h1, h2, h3, .brand {
 .modal-box h3 { margin-top: 0; font-size: 22px; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
-.form-group input[type="text"], .form-group select {
+.form-group input[type="text"], .form-group input[type="number"], .form-group select {
   width: 100%; padding: 11px 14px; border-radius: 12px; border: 2px solid #eee;
   font-family: 'Fredoka'; font-size: 15px; outline: none; transition: border .2s;
 }
@@ -234,51 +235,73 @@ h1, h2, h3, .brand {
 }
 .class-chip.active { border-color: var(--dark); }
 
-/* ===== LEADERBOARD - INDIVIDU ===== */
-.rank-row {
-  display: flex; align-items: center; gap: 16px; background: #fff;
-  border-radius: 18px; padding: 14px 18px; margin-bottom: 12px; box-shadow: var(--shadow);
-  animation: popIn .3s ease;
-}
-.rank-num {
-  width: 34px; height: 34px; border-radius: 50%; background: var(--yellow);
-  display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0;
-}
-.rank-row.top1 .rank-num { background: #FFD700; }
-.rank-row.top2 .rank-num { background: #C0C0C0; }
-.rank-row.top3 .rank-num { background: #CD7F32; }
+/* ===== STAR ICON (SVG generik, bukan sticker berhakcipta) ===== */
+.star-icon-svg { display: inline-block; vertical-align: middle; filter: drop-shadow(0 2px 2px rgba(0,0,0,.15)); }
 
-.rank-photo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #f2f2f2; flex-shrink: 0; }
-.rank-info { flex: 1; min-width: 140px; }
-.rank-name { font-weight: 700; margin-bottom: 4px; }
-
-.progress-bar-track {
-  background: #F0F0F5; border-radius: 999px; height: 16px; overflow: hidden; position: relative;
+/* ===== LEADERBOARD - INDIVIDU (kad murid baharu) ===== */
+.student-reward-card {
+  background: #fff; border-radius: 22px; padding: 18px; margin-bottom: 16px;
+  box-shadow: var(--shadow); animation: popIn .3s ease;
 }
-.progress-bar-fill {
-  height: 100%; border-radius: 999px;
-  background: linear-gradient(90deg, var(--pink), var(--orange));
-  transition: width .6s cubic-bezier(.34,1.56,.64,1);
+.student-reward-card.top1 { border: 3px solid #FFD700; }
+.student-reward-card.top2 { border: 3px solid #C0C0C0; }
+.student-reward-card.top3 { border: 3px solid #CD7F32; }
+
+.src-header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.src-rank {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--yellow);
+  display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; font-size: 14px;
 }
+.src-photo { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; background: #f2f2f2; flex-shrink: 0; }
+.src-name { font-weight: 700; font-size: 17px; flex: 1; min-width: 100px; }
 
-.star-stickers { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 6px; max-width: 220px; }
-.star-icon { font-size: 16px; display: inline-block; animation: starPop .4s ease; }
-@keyframes starPop { from{ transform: scale(0) rotate(-40deg); } to { transform: scale(1) rotate(0); } }
-
-.point-badge {
-  background: var(--purple); color: #fff; font-weight: 700; padding: 5px 12px;
-  border-radius: 999px; font-size: 13px; white-space: nowrap;
+.star-counter {
+  display: flex; align-items: center; gap: 10px; background: #FFF7EE;
+  padding: 8px 14px; border-radius: 999px;
 }
-
+.star-counter .count { font-weight: 800; font-size: 18px; font-family: 'Baloo 2'; min-width: 26px; text-align: center; }
 .star-add-btn {
-  width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
-  background: var(--yellow); font-size: 16px; flex-shrink: 0; box-shadow: 0 3px 0 rgba(0,0,0,0.1);
-  transition: transform .15s;
+  width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+  background: var(--green); color: #fff; font-size: 17px; flex-shrink: 0; box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+  transition: transform .15s; font-weight: 700;
 }
-.star-add-btn:hover { transform: scale(1.1) rotate(15deg); }
-.star-remove-btn { background: #FFD9D9; }
+.star-add-btn:hover { transform: scale(1.12) rotate(10deg); }
+.star-remove-btn { background: #FF9E9E; }
 
-/* ===== LEADERBOARD - KUMPULAN (circular) ===== */
+/* Grid sticker 6x2 = 12 slot */
+.sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+  max-width: 480px;
+}
+@media (max-width: 560px) {
+  .sticker-grid { grid-template-columns: repeat(4, 1fr); max-width: 100%; }
+}
+.sticker-slot {
+  aspect-ratio: 1/1; border-radius: 14px; background: #F7F4FB;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px dashed #E4DEF0; position: relative; overflow: hidden;
+}
+.sticker-slot img {
+  width: 100%; height: 100%; object-fit: contain; padding: 4px;
+  animation: stickerPop .5s cubic-bezier(.34,1.56,.64,1);
+}
+.sticker-slot.locked { opacity: .35; }
+.sticker-slot.locked::after {
+  content: '🔒'; font-size: 16px; position: absolute;
+}
+.sticker-slot .tier-label {
+  position: absolute; bottom: 1px; right: 3px; font-size: 8px; opacity: .5; font-weight: 600;
+}
+@keyframes stickerPop {
+  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+  70% { transform: scale(1.15) rotate(6deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* ===== LEADERBOARD - KUMPULAN (circular, kekal) ===== */
 .group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 22px; }
 .group-circle-card {
   background: #fff; border-radius: var(--radius); padding: 20px; text-align: center; box-shadow: var(--shadow);
@@ -310,16 +333,23 @@ h1, h2, h3, .brand {
   border-radius: 24px;
   border: 8px solid var(--yellow); overflow: hidden;
   box-shadow: 0 0 0 8px #fff, var(--shadow);
-  margin: 0 auto 20px; position: relative; background: #f7f7f7;
+  margin: 0 auto; position: relative; background: #f7f7f7;
+  cursor: pointer;
+  transition: transform .15s ease;
 }
+.spin-display-frame:hover { transform: scale(1.015); }
+.spin-display-frame:active { transform: scale(.98); }
 .spin-display-frame img {
-  width: 100%; height: 100%; object-fit: cover;
+  width: 100%; height: 100%; object-fit: cover; pointer-events: none;
 }
-.spin-name-tag {
-  font-size: 24px; font-weight: 800; font-family: 'Baloo 2'; color: var(--dark);
-  min-height: 34px;
+.spin-tap-hint {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.28); color: #fff; font-weight: 700; font-size: 18px;
+  opacity: 0; transition: opacity .2s; font-family: 'Baloo 2'; text-align: center; padding: 10px;
 }
+.spin-display-frame:hover .spin-tap-hint { opacity: 1; }
 .spin-display-frame.spinning { animation: pulseFrame .15s infinite alternate; }
+.spin-display-frame.spinning .spin-tap-hint { display: none; }
 @keyframes pulseFrame { from{ box-shadow: 0 0 0 8px #fff, 0 0 20px 6px var(--yellow);} to{ box-shadow: 0 0 0 8px #fff, 0 0 30px 12px var(--pink);} }
 .spin-display-frame.winner {
   animation: winnerZoom .7s cubic-bezier(.34,1.56,.64,1);
@@ -327,13 +357,57 @@ h1, h2, h3, .brand {
 @keyframes winnerZoom {
   0% { transform: scale(1); }
   50% { transform: scale(1.25); }
-  100% { transform: scale(1.12); }
+  100% { transform: scale(1); }
 }
+
+.spin-fullscreen-btn {
+  margin-top: 16px; background: #fff; border: 2px solid #eee; border-radius: 999px;
+  padding: 9px 20px; font-family: 'Fredoka'; font-weight: 600; cursor: pointer; font-size: 14px;
+}
+
+/* Fullscreen mode styling */
+.spin-stage:fullscreen {
+  display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, #fff, #FFF3E0);
+}
+.spin-stage:fullscreen .spin-display-frame { max-width: 900px; width: 90vw; }
 
 #confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 2000; }
 
 .empty-state { text-align: center; padding: 50px 20px; opacity: .6; }
 .empty-state .emoji { font-size: 50px; margin-bottom: 10px; }
+
+/* ===== HADIAH PAGE ===== */
+.poster-frame {
+  border-radius: 24px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 26px;
+  background: #fff; text-align: center;
+}
+.poster-frame img { width: 100%; max-height: 480px; object-fit: contain; display: block; margin: 0 auto; }
+.poster-upload-zone {
+  border: 3px dashed #E4DEF0; border-radius: 24px; padding: 40px 20px; text-align: center;
+  background: #fff; margin-bottom: 26px; cursor: pointer;
+}
+
+.tier-manage-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 16px; }
+.tier-manage-card {
+  background: #fff; border-radius: 18px; padding: 16px; text-align: center; box-shadow: var(--shadow);
+  position: relative;
+}
+.tier-manage-card .tier-num {
+  position: absolute; top: 10px; left: 10px; background: var(--purple); color: #fff;
+  width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.tier-sticker-preview {
+  width: 100%; aspect-ratio: 1/1; border-radius: 14px; background: #F7F4FB;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 10px; overflow: hidden;
+}
+.tier-sticker-preview img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+.tier-sticker-preview .placeholder-emoji { font-size: 34px; opacity: .3; }
+.tier-manage-card input[type="text"], .tier-manage-card input[type="number"] {
+  width: 100%; padding: 8px 10px; border-radius: 10px; border: 2px solid #eee; font-family: 'Fredoka';
+  font-size: 13px; margin-bottom: 6px; text-align: center;
+}
+.tier-star-range { font-size: 12px; opacity: .6; margin-bottom: 8px; }
 
 @media (max-width: 640px) {
   .navbar { flex-direction: column; align-items: flex-start; }

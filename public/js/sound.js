@@ -1,4 +1,3 @@
-// ===== BUNYI GUNA WEB AUDIO API (tak perlukan fail mp3) =====
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let actx = null;
 function getCtx() {
@@ -7,7 +6,6 @@ function getCtx() {
   return actx;
 }
 
-// Bunyi "kling" semasa gambar bertukar pantas
 function playTick() {
   try {
     const ctx = getCtx();
@@ -24,11 +22,10 @@ function playTick() {
   } catch (e) { /* ignore */ }
 }
 
-// Bunyi "tada" kejayaan bila pemenang dipilih
 function playTada() {
   try {
     const ctx = getCtx();
-    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+    const notes = [523.25, 659.25, 783.99, 1046.5];
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -45,7 +42,22 @@ function playTada() {
   } catch (e) { /* ignore */ }
 }
 
-// ===== CONFETTI RINGAN GUNA CANVAS (tiada CDN diperlukan) =====
+function playStarChime() {
+  try {
+    const ctx = getCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(700, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.2);
+  } catch (e) { /* ignore */ }
+}
+
 let confettiCanvas, confettiCtx, confettiParticles = [], confettiRunning = false;
 
 function ensureConfettiCanvas() {
@@ -84,7 +96,6 @@ function fireConfetti(durationMs = 2500) {
     confettiRunning = true;
     animateConfetti();
   }
-  setTimeout(() => { confettiParticles = confettiParticles.filter((p) => false) || confettiParticles; }, durationMs);
 }
 
 function animateConfetti() {

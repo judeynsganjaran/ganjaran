@@ -1,11 +1,13 @@
 let lbClasses = [];
 let lbSelectedClassId = null;
 let lbTab = 'individu';
+let rewardTiers = [];
 
 document.addEventListener('DOMContentLoaded', initLeaderboard);
 
 async function initLeaderboard() {
   try {
+    rewardTiers = await API.get('/reward-tiers');
     lbClasses = await API.get('/classes');
     const sel = document.getElementById('classSelector');
     if (lbClasses.length === 0) {
@@ -36,20 +38,7 @@ async function lbSelectClass(classId) {
   else await loadKumpulan(classId);
 }
 
-// ===== TIER BINTANG: makin tinggi point, makin cantik bintang =====
-function starTier(points) {
-  if (points >= 30) return '🌠';
-  if (points >= 20) return '✨';
-  if (points >= 10) return '💫';
-  if (points >= 5) return '🌟';
-  return '⭐';
-}
-
-function placeholderSVG() {
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#FFE8A3"/><text x="50" y="60" font-size="40" text-anchor="middle">🙂</text></svg>
-  `);
-}
+// ===== INDIVIDU: kad murid + counter bintang + grid sticker =====
 
 async function loadIndividu(classId) {
   try {
@@ -59,36 +48,53 @@ async function loadIndividu(classId) {
       list.innerHTML = `<div class="empty-state"><div class="emoji">👦👧</div>Tiada murid dalam kelas ini.</div>`;
       return;
     }
-    const maxPoints = Math.max(...students.map((s) => s.points), 10);
     list.innerHTML = students.map((s, i) => {
-      const pct = Math.round((s.points / maxPoints) * 100);
-      const tier = starTier(s.points);
-      const starCount = Math.min(s.points, 15);
       const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
       return `
-      <div class="rank-row ${rankClass}">
-        <div class="rank-num">${i + 1}</div>
-        <img class="rank-photo" src="${s.photo || placeholderSVG()}" alt="${s.name}">
-        <div class="rank-info">
-          <div class="rank-name">${s.name}</div>
-          <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
-          <div class="star-stickers">${Array.from({ length: starCount }).map(() => `<span class="star-icon">${tier}</span>`).join('')}</div>
+      <div class="student-reward-card ${rankClass}">
+        <div class="src-header">
+          <div class="src-rank">${i + 1}</div>
+          <img class="src-photo" src="${s.photo || placeholderSVG()}" alt="${s.name}">
+          <div class="src-name">${s.name}</div>
+          <div class="star-counter">
+            <button class="star-add-btn star-remove-btn" title="Kurang bintang" onclick="addPoint('${s._id}', -1)">➖</button>
+            ${starIconSVG(22)}
+            <span class="count">${s.points}</span>
+            <button class="star-add-btn" title="Tambah bintang" onclick="addPoint('${s._id}', 1)">➕</button>
+          </div>
         </div>
-        <div class="point-badge">${s.points} ⭐</div>
-        <button class="star-add-btn" title="Tambah bintang" onclick="addPoint('${s._id}', 1)">➕</button>
-        <button class="star-add-btn star-remove-btn" title="Kurang bintang" onclick="addPoint('${s._id}', -1)">➖</button>
+        ${renderStickerGrid(s.points)}
       </div>`;
     }).join('');
   } catch (e) { toast(e.message, 'error'); }
 }
 
+function renderStickerGrid(points) {
+  // Guna 12 tahap (atau berapa banyak yang guru ada cipta), 6 lajur x 2 baris
+  const tiers = rewardTiers.slice(0, 12);
+  return `<div class="sticker-grid">
+    ${tiers.map((t) => {
+      const unlocked = points >= t.minStars;
+      if (unlocked && t.stickerUrl) {
+        return `<div class="sticker-slot"><img src="${t.stickerUrl}" alt="${t.name}" title="${t.name} (${t.minStars}+ ⭐)"></div>`;
+      }
+      return `<div class="sticker-slot ${unlocked ? '' : 'locked'}"><span class="tier-label">${t.minStars}+</span></div>`;
+    }).join('')}
+  </div>`;
+}
+
 async function addPoint(studentId, delta) {
   try {
     await API.patch(`/leaderboard/student/${studentId}/point`, { delta });
-    if (delta > 0) toast('Bintang ditambah! ⭐');
+    if (delta > 0) {
+      playStarChime();
+      toast('Bintang ditambah! ⭐');
+    }
     await loadIndividu(lbSelectedClassId);
   } catch (e) { toast(e.message, 'error'); }
 }
+
+// ===== KUMPULAN: circle progress (kekal) =====
 
 async function loadKumpulan(classId) {
   try {
@@ -105,7 +111,6 @@ async function loadKumpulan(classId) {
     grid.innerHTML = groups.map((g, i) => {
       const pct = Math.min(g.totalPoints / maxPoints, 1);
       const offset = circumference - pct * circumference;
-      const tier = starTier(g.totalPoints);
       return `
       <div class="group-circle-card">
         ${i === 0 ? '<div class="group-rank-badge">👑 Mendahului</div>' : `<div class="group-rank-badge" style="background:#B18CFF;">#${i + 1}</div>`}
@@ -119,7 +124,7 @@ async function loadKumpulan(classId) {
           </svg>
           <div class="circle-label">
             <div class="points">${g.totalPoints}</div>
-            <div class="stars">${tier} bintang</div>
+            <div class="stars">${starIconSVG(14)} bintang</div>
           </div>
         </div>
         <div class="group-name">${g.name}</div>
@@ -127,7 +132,6 @@ async function loadKumpulan(classId) {
       </div>`;
     }).join('');
 
-    // animate circle after render
     setTimeout(() => {
       document.querySelectorAll('.circle-fill').forEach((el) => {
         el.style.strokeDashoffset = el.dataset.offset;

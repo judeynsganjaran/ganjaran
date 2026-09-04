@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hadiah 🎁</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/index.html" class="brand">🌈 Ganjaran BM</a>
+  <div class="breadcrumbs">
+    <a href="/leaderboard.html">🏆 Leaderboard</a>
+    <a href="/kumpulan.html">👨‍👩‍👧‍👦 Kumpulan</a>
+    <a href="/kelas.html">🏫 Pengurusan Kelas</a>
+    <a href="/spin.html">🎡 Spin Wheel</a>
+    <a href="/hadiah.html" class="active">🎁 Hadiah</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1 class="page-title">🎁 Hadiah & Sticker</h1>
+  <p class="page-subtitle">Urus poster hadiah besar dan sticker untuk setiap tahap bintang</p>
+
+  <!-- POSTER BESAR -->
+  <h2>🖼️ Poster Hadiah</h2>
+  <div id="posterDisplay"></div>
+  <label class="btn btn-purple" style="cursor:pointer; margin-bottom:30px; display:inline-block;">
+    📤 Upload / Tukar Poster
+    <input type="file" id="posterInput" accept="image/*" style="display:none;" onchange="uploadPoster()">
+  </label>
+
+  <!-- SENARAI TAHAP -->
+  <h2 style="margin-top:10px;">⭐ Tahap Bintang & Sticker</h2>
+  <p style="opacity:.7; font-size:14px; margin-top:-8px;">
+    Tetapkan nilai bintang minimum untuk setiap tahap, dan upload sticker (PNG latar telus) yang murid akan dapat.
+  </p>
+  <div class="tier-manage-grid" id="tierGrid"></div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/hadiah.js"></script>
+</body>
+</html>

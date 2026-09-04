@@ -1,7 +1,7 @@
 {
   "name": "sistem-ganjaran-bm",
   "version": "1.0.0",
-  "description": "Sistem Ganjaran Bahasa Melayu - Leaderboard, Kumpulan, Pengurusan Kelas, Spin Wheel",
+  "description": "Sistem Ganjaran Bahasa Melayu - Leaderboard, Kumpulan, Pengurusan Kelas, Spin Wheel, Hadiah",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

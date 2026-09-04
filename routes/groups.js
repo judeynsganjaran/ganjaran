@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Group = require('../models/Group');
 
-// Dapatkan semua kumpulan ikut kelas
 router.get('/class/:classId', async (req, res) => {
   try {
     const groups = await Group.find({ classId: req.params.classId }).populate('members');
@@ -12,7 +11,6 @@ router.get('/class/:classId', async (req, res) => {
   }
 });
 
-// Cipta kumpulan baru
 router.post('/', async (req, res) => {
   try {
     const { name, classId, members, color } = req.body;
@@ -25,7 +23,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Kemaskini kumpulan (nama / ahli)
 router.put('/:id', async (req, res) => {
   try {
     const { name, members, color } = req.body;
@@ -41,7 +38,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Padam kumpulan
 router.delete('/:id', async (req, res) => {
   try {
     await Group.findByIdAndDelete(req.params.id);
