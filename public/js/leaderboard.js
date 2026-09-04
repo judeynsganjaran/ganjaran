@@ -58,7 +58,7 @@ async function loadIndividu(classId) {
           <div class="src-name">${s.name}</div>
           <div class="star-counter">
             <button class="star-add-btn star-remove-btn" title="Kurang bintang" onclick="addPoint('${s._id}', -1)">➖</button>
-            ${starIconSVG(22)}
+            ${starIconSVG(28)}
             <span class="count">${s.points}</span>
             <button class="star-add-btn" title="Tambah bintang" onclick="addPoint('${s._id}', 1)">➕</button>
           </div>
@@ -76,9 +76,15 @@ function renderStickerGrid(points) {
     ${tiers.map((t) => {
       const unlocked = points >= t.minStars;
       if (unlocked && t.stickerUrl) {
-        return `<div class="sticker-slot"><img src="${t.stickerUrl}" alt="${t.name}" title="${t.name} (${t.minStars}+ ⭐)"></div>`;
+        return `<div class="sticker-slot">
+          <span class="tier-level-badge">${t.levelNumber}</span>
+          <img src="${t.stickerUrl}" alt="${t.name}" title="${t.name} (${t.minStars}+ ⭐)">
+        </div>`;
       }
-      return `<div class="sticker-slot ${unlocked ? '' : 'locked'}"><span class="tier-label">${t.minStars}+</span></div>`;
+      return `<div class="sticker-slot ${unlocked ? '' : 'locked'}">
+        <span class="tier-level-badge">${t.levelNumber}</span>
+        <span class="tier-label">${t.minStars}+ ⭐</span>
+      </div>`;
     }).join('')}
   </div>`;
 }

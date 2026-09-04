@@ -259,41 +259,48 @@ h1, h2, h3, .brand {
   display: flex; align-items: center; gap: 10px; background: #FFF7EE;
   padding: 8px 14px; border-radius: 999px;
 }
-.star-counter .count { font-weight: 800; font-size: 18px; font-family: 'Baloo 2'; min-width: 26px; text-align: center; }
+.star-counter .count { font-weight: 800; font-size: 30px; font-family: 'Baloo 2'; min-width: 40px; text-align: center; }
 .star-add-btn {
-  width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
-  background: var(--green); color: #fff; font-size: 17px; flex-shrink: 0; box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+  width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
+  background: var(--green); color: #fff; font-size: 14px; flex-shrink: 0; box-shadow: 0 3px 0 rgba(0,0,0,0.1);
   transition: transform .15s; font-weight: 700;
 }
 .star-add-btn:hover { transform: scale(1.12) rotate(10deg); }
 .star-remove-btn { background: #FF9E9E; }
 
-/* Grid sticker 6x2 = 12 slot */
+/* Grid sticker 6x2 = 12 slot - dibesarkan supaya sticker senang dilihat murid */
 .sticker-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  margin-top: 16px;
-  max-width: 480px;
+  gap: 14px;
+  margin-top: 20px;
+  max-width: 720px;
 }
-@media (max-width: 560px) {
-  .sticker-grid { grid-template-columns: repeat(4, 1fr); max-width: 100%; }
+@media (max-width: 720px) {
+  .sticker-grid { grid-template-columns: repeat(3, 1fr); max-width: 100%; }
 }
 .sticker-slot {
-  aspect-ratio: 1/1; border-radius: 14px; background: #F7F4FB;
+  aspect-ratio: 1/1; border-radius: 18px; background: #F7F4FB;
   display: flex; align-items: center; justify-content: center;
-  border: 2px dashed #E4DEF0; position: relative; overflow: hidden;
+  border: 3px dashed #E4DEF0; position: relative; overflow: hidden;
+  min-height: 90px;
 }
 .sticker-slot img {
-  width: 100%; height: 100%; object-fit: contain; padding: 4px;
+  width: 100%; height: 100%; object-fit: contain; padding: 6px;
   animation: stickerPop .5s cubic-bezier(.34,1.56,.64,1);
 }
-.sticker-slot.locked { opacity: .35; }
+.sticker-slot.locked { opacity: .4; }
 .sticker-slot.locked::after {
-  content: '🔒'; font-size: 16px; position: absolute;
+  content: '🔒'; font-size: 26px; position: absolute;
+}
+.sticker-slot .tier-level-badge {
+  position: absolute; top: 4px; left: 4px; background: var(--purple); color: #fff;
+  width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; font-family: 'Baloo 2'; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,.15);
 }
 .sticker-slot .tier-label {
-  position: absolute; bottom: 1px; right: 3px; font-size: 8px; opacity: .5; font-weight: 600;
+  position: absolute; bottom: 3px; right: 5px; font-size: 12px; opacity: .65; font-weight: 700;
+  background: rgba(255,255,255,0.85); padding: 1px 6px; border-radius: 8px;
 }
 @keyframes stickerPop {
   0% { transform: scale(0) rotate(-30deg); opacity: 0; }
