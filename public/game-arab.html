@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-<title>Game Arab — Cyber Sky Arabic 🕹️</title>
+<title>Ilmuverse Gamebox 🎮</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,7 +46,7 @@
   .modal-overlay{
     position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
     background:radial-gradient(ellipse at center, rgba(15,23,42,.85), rgba(2,4,10,.97));
-    z-index:50; padding:16px;
+    z-index:50; padding:16px; overflow-y:auto;
   }
   .hidden{ display:none !important; }
 
@@ -61,6 +61,37 @@
 
   #loadingBar{ transition: width .25s ease; }
   ::-webkit-scrollbar{ width:8px; } ::-webkit-scrollbar-thumb{ background:rgba(34,227,245,.4); border-radius:4px; }
+
+  /* ===== MODE SELECT CARDS ===== */
+  .mode-card{
+    background: linear-gradient(135deg, rgba(30,41,59,.6), rgba(15,23,42,.8));
+    border: 1px solid rgba(34,227,245,.3); border-radius: 16px; padding: 16px;
+    text-align: left; cursor: pointer; transition: all .2s ease; color:#e6fbff; width:100%;
+  }
+  .mode-card:hover{ border-color: rgba(34,227,245,.8); transform: translateY(-2px); box-shadow: 0 0 20px rgba(34,227,245,.25); }
+  .mode-card .mode-icon{ font-size: 1.8rem; margin-bottom:4px; }
+  .mode-card .mode-name{ font-family:'Orbitron',sans-serif; font-size:.85rem; letter-spacing:.05em; margin-bottom:2px; }
+  .mode-card .mode-desc{ font-family:'Kanit',sans-serif; font-size:.72rem; color:#94a3b8; }
+
+  /* ===== FINGER QUIZ PANEL ===== */
+  #quizPanel{ z-index: 20; }
+  .quiz-option{
+    position: relative; overflow: hidden;
+    background: rgba(15,23,42,.78); border: 1px solid rgba(148,163,184,.3);
+    border-radius: 12px; padding: 10px 14px; display:flex; align-items:center; gap:10px;
+    font-family:'Kanit',sans-serif; font-size:.85rem; color:#e6fbff; margin-bottom:8px;
+  }
+  .quiz-option .quiz-num{
+    font-family:'Orbitron',sans-serif; font-weight:700; width:26px; height:26px; border-radius:50%;
+    background: rgba(139,92,246,.35); display:flex; align-items:center; justify-content:center; font-size:.8rem; flex-shrink:0; z-index:1;
+  }
+  .quiz-option .quiz-fill{
+    position:absolute; left:0; top:0; bottom:0; width:0%; background: rgba(34,227,245,.28); z-index:0;
+  }
+  .quiz-option .quiz-text{ position:relative; z-index:1; }
+  .quiz-option.active{ border-color: rgba(34,227,245,.7); }
+  .quiz-option.correct{ border-color:#22e3f5; background: rgba(34,227,245,.18); }
+  .quiz-option.wrong{ border-color:#ef4444; background: rgba(239,68,68,.18); }
 </style>
 </head>
 <body class="text-slate-100">
@@ -73,8 +104,8 @@
   <div id="hud" class="hidden pointer-events-none">
     <!-- Top Left: Mission label -->
     <div class="fixed top-3 left-3 glass rounded-xl px-4 py-2">
-      <div class="font-orbitron text-[10px] tracking-widest text-cyan-300/80">MISSION</div>
-      <div id="hudLessonName" class="font-orbitron text-sm glow-cyan">ARABIC VOCABULARY</div>
+      <div class="font-orbitron text-[10px] tracking-widest text-cyan-300/80">TOPIK</div>
+      <div id="hudLessonName" class="font-orbitron text-sm glow-cyan">—</div>
     </div>
 
     <!-- Top Center: instruction banner -->
@@ -85,7 +116,7 @@
 
     <!-- Top Right: score / combo -->
     <div class="fixed top-3 right-3 glass rounded-xl px-4 py-2 text-right">
-      <div class="font-orbitron text-[10px] tracking-widest text-cyan-300/80">TACTICAL SCORE</div>
+      <div class="font-orbitron text-[10px] tracking-widest text-cyan-300/80">SKOR</div>
       <div id="hudScore" class="font-orbitron text-xl glow-cyan">0</div>
       <div class="font-orbitron text-[10px] tracking-widest text-amber-300/80 mt-1">COMBO</div>
       <div id="hudCombo" class="font-orbitron text-lg glow-amber">×1</div>
@@ -94,7 +125,7 @@
     <!-- Bottom: progress + AI NOVA -->
     <div class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[min(640px,94vw)] flex flex-col items-center gap-2">
       <div class="glass rounded-xl px-4 py-1.5 w-full text-center">
-        <div class="font-orbitron text-[10px] tracking-widest text-cyan-300/80" id="progressLabel">ARABIC MISSION 0/16</div>
+        <div class="font-orbitron text-[10px] tracking-widest text-cyan-300/80" id="progressLabel">MISI 0/0</div>
         <div id="progressDots" class="flex flex-wrap gap-1.5 justify-center mt-1"></div>
       </div>
       <div class="glass rounded-xl px-4 py-2 w-full">
@@ -104,30 +135,66 @@
     </div>
   </div>
 
+  <!-- ===== FINGER QUIZ PANEL (Mod Isyarat Jari sahaja) ===== -->
+  <div id="quizPanel" class="hidden fixed bottom-24 left-1/2 -translate-x-1/2 w-[min(480px,92vw)]"></div>
+
   <!-- ===== START MODAL ===== -->
   <div id="startModal" class="modal-overlay">
     <div class="glass rounded-2xl p-6 md:p-8 max-w-lg w-full">
       <div class="text-center mb-4">
-        <div class="font-arabic text-3xl md:text-4xl glow-cyan mb-1" dir="rtl">درع السماء السيبراني</div>
-        <div class="font-orbitron text-sm tracking-widest text-violet-300">MISI KOSA KATA BAHASA ARAB</div>
+        <div class="font-orbitron text-2xl md:text-3xl glow-cyan mb-1">🎮 ILMUVERSE GAMEBOX</div>
+        <div class="font-orbitron text-sm tracking-widest text-violet-300">KUIZ INTERAKTIF PENGESANAN TANGAN</div>
       </div>
-      <p class="font-kanit text-center text-slate-300 text-sm mb-4">Kenali perkataan Bahasa Arab dan musnahkan drone yang betul menggunakan tapak tangan anda.</p>
-
-      <div class="grid grid-cols-2 gap-2 text-center text-xs font-kanit mb-5">
-        <div class="glass rounded-lg py-2">✋<br/>1. Angkat &amp; buka tapak tangan</div>
-        <div class="glass rounded-lg py-2">🎯<br/>2. Halakan ke drone</div>
-        <div class="glass rounded-lg py-2">⚡<br/>3. Tunggu sasaran dikunci</div>
-        <div class="glass rounded-lg py-2">💥<br/>4. Tembak!</div>
-      </div>
+      <p class="font-kanit text-center text-slate-300 text-sm mb-4">Gunakan tapak tangan &amp; jari anda sebagai kawalan — tiada sentuhan skrin diperlukan. Sesuai untuk sebarang subjek.</p>
 
       <label class="font-orbitron text-[11px] tracking-widest text-cyan-300/80 block mb-1">PILIH TOPIK PELAJARAN</label>
       <select id="lessonSelect" class="w-full mb-2 bg-slate-900/70 border border-cyan-500/40 rounded-lg px-3 py-2 font-kanit text-sm"></select>
       <div id="lessonStatus" class="text-xs font-kanit text-slate-400 mb-4 min-h-[1.2em]">Memuatkan senarai topik...</div>
 
-      <button id="startBtn" class="btn-cyber w-full rounded-lg py-3 font-orbitron tracking-widest" disabled>MULA MISI</button>
+      <button id="startBtn" class="btn-cyber w-full rounded-lg py-3 font-orbitron tracking-widest" disabled>SETERUSNYA →</button>
       <div class="text-center mt-3 flex items-center justify-center gap-4">
         <a href="/index.html" class="text-[11px] font-kanit text-slate-400 hover:text-cyan-300 underline">← Ganjaran BM</a>
         <a href="/game-arab-admin.html" class="text-[11px] font-kanit text-slate-400 hover:text-cyan-300 underline">⚙ Edit kandungan pelajaran (Panel Guru)</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODE SELECT MODAL ===== -->
+  <div id="modeModal" class="modal-overlay hidden">
+    <div class="glass rounded-2xl p-6 md:p-8 max-w-2xl w-full">
+      <div class="text-center mb-4">
+        <div class="font-orbitron text-lg glow-cyan">PILIH MOD PERMAINAN</div>
+        <div class="font-kanit text-xs text-slate-400 mt-1" id="modeModalLessonName"></div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <button class="mode-card" data-mode="tembak">
+          <div class="mode-icon">🎯</div>
+          <div class="mode-name">MOD TEMBAK</div>
+          <div class="mode-desc">Sasar &amp; tembak drone yang ada jawapan betul menggunakan tapak tangan terbuka.</div>
+        </button>
+        <button class="mode-card" data-mode="padan">
+          <div class="mode-icon">🔗</div>
+          <div class="mode-name">MOD PADAN</div>
+          <div class="mode-desc">Cubit (ibu jari + telunjuk) untuk tarik &amp; sambung pasangan soalan-jawapan yang betul.</div>
+        </button>
+        <button class="mode-card" data-mode="isyarat">
+          <div class="mode-icon">🖐️</div>
+          <div class="mode-name">MOD ISYARAT JARI</div>
+          <div class="mode-desc">Jawab kuiz 4 pilihan dengan tunjuk bilangan jari (1-4). Sesuai kuiz seluruh kelas!</div>
+        </button>
+        <button class="mode-card" data-mode="masa">
+          <div class="mode-icon">⏱️</div>
+          <div class="mode-name">MOD LAWAN MASA</div>
+          <div class="mode-desc">Jawab sebanyak mungkin dalam 60 saat. Perkataan boleh berulang.</div>
+        </button>
+        <button class="mode-card sm:col-span-2" data-mode="ingat">
+          <div class="mode-icon">🧠</div>
+          <div class="mode-name">MOD INGAT</div>
+          <div class="mode-desc">Perkataan dipaparkan sekejap pada drone, kemudian tersembunyi — ingat kedudukannya &amp; sasar drone yang betul.</div>
+        </button>
+      </div>
+      <div class="text-center mt-4">
+        <button id="modeBackBtn" class="text-[11px] font-kanit text-slate-400 hover:text-cyan-300 underline">← Tukar topik</button>
       </div>
     </div>
   </div>
@@ -156,17 +223,17 @@
   <div id="victoryModal" class="modal-overlay hidden">
     <div class="glass rounded-2xl p-6 md:p-8 max-w-md w-full text-center">
       <div class="font-orbitron text-xl md:text-2xl glow-cyan mb-1">MISSION COMPLETE</div>
-      <div class="font-arabic text-2xl glow-amber mb-3">مُبَارَك!</div>
+      <div class="font-orbitron text-2xl glow-amber mb-3">🎉 TAHNIAH!</div>
       <div id="starRow" class="mb-4"><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
       <div class="grid grid-cols-2 gap-3 text-left font-kanit text-sm mb-5">
         <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Skor Akhir</div><div id="statScore" class="font-orbitron text-lg glow-cyan">0</div></div>
         <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Combo Tertinggi</div><div id="statCombo" class="font-orbitron text-lg glow-amber">×1</div></div>
-        <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Tembakan Tersasar</div><div id="statMiss" class="font-orbitron text-lg">0</div></div>
+        <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Tersasar / Salah</div><div id="statMiss" class="font-orbitron text-lg">0</div></div>
         <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Perkataan Dikuasai</div><div id="statWords" class="font-orbitron text-lg">0/0</div></div>
       </div>
       <div class="flex flex-col gap-2">
         <button id="replayBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm">🔄 MAIN SEMULA</button>
-        <button id="reviewBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm">📚 ULANG KAJI KOSA KATA</button>
+        <button id="reviewBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm">📚 ULANG KAJI KANDUNGAN</button>
         <button id="menuBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm">🏠 MENU UTAMA</button>
       </div>
     </div>
@@ -175,7 +242,7 @@
   <!-- ===== REVIEW MODAL ===== -->
   <div id="reviewModal" class="modal-overlay hidden">
     <div class="glass rounded-2xl p-6 max-w-lg w-full max-h-[85vh] flex flex-col">
-      <div class="font-orbitron text-lg glow-cyan text-center mb-3">KOSA KATA YANG TELAH DIPELAJARI</div>
+      <div class="font-orbitron text-lg glow-cyan text-center mb-3">KANDUNGAN YANG TELAH DIPELAJARI</div>
       <div id="reviewList" class="overflow-y-auto grid grid-cols-1 gap-2 pr-1"></div>
       <button id="reviewCloseBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm mt-4">TUTUP</button>
     </div>
@@ -187,8 +254,12 @@
 
 <script>
 /* =========================================================================
-   CYBER SKY ARABIC — Permainan pengesanan tangan untuk kosa kata Arab
-   Kandungan pelajaran (senarai perkataan) diambil dari MongoDB melalui API.
+   ILMUVERSE GAMEBOX — Kuiz interaktif pengesanan tangan (MediaPipe Hands)
+   Kandungan pelajaran (senarai soalan/jawapan) diambil dari MongoDB melalui
+   API dan boleh diedit di /game-arab-admin.html. Sesuai untuk sebarang
+   subjek — bukan terhad kepada Bahasa Arab sahaja.
+
+   5 MOD PERMAINAN: tembak | padan | isyarat | masa | ingat
    ========================================================================= */
 
 // ------------------------------------------------------------------
@@ -205,6 +276,7 @@ const CONFIG = {
     openPalmMinFingers: 3,         // bilangan jari terbuka minimum untuk dikira "tapak tangan terbuka"
     aimHitPadding: 48,             // px toleransi radius sekitar drone (lagi besar = lagi mudah untuk kanak-kanak menyasar)
     lostGraceMs: 220,              // tempoh toleransi bila reticle tersasar sekejap drone sebelum reset kunci
+    pinchRatio: 0.45,              // nisbah jarak ibu jari~telunjuk berbanding lebar tapak tangan untuk dikira "cubit" (Mod Padan)
   },
   GAME: {
     lockChargeMs: 750,
@@ -212,6 +284,12 @@ const CONFIG = {
     feedbackDelayMs: 1900,
     maxCombo: 5,
     droneRadius: 78,
+    timeAttackSeconds: 60,         // Mod Lawan Masa
+    memoryRevealMs: 2200,          // Mod Ingat - tempoh perkataan ditunjuk sebelum tersembunyi
+    fingerHoldMs: 800,             // Mod Isyarat Jari - tempoh perlu stabil sebelum jawapan dikunci
+  },
+  MATCH: {
+    pairsPerRound: 5,              // Mod Padan - bilangan pasangan setiap pusingan
   },
 };
 
@@ -222,7 +300,11 @@ const els = {
   video: document.getElementById('camera'),
   canvas: document.getElementById('scene'),
   hud: document.getElementById('hud'),
+  quizPanel: document.getElementById('quizPanel'),
   startModal: document.getElementById('startModal'),
+  modeModal: document.getElementById('modeModal'),
+  modeModalLessonName: document.getElementById('modeModalLessonName'),
+  modeBackBtn: document.getElementById('modeBackBtn'),
   loadingModal: document.getElementById('loadingModal'),
   cameraErrorModal: document.getElementById('cameraErrorModal'),
   victoryModal: document.getElementById('victoryModal'),
@@ -257,24 +339,42 @@ const ctx = els.canvas.getContext('2d');
 let W = 0, H = 0;
 
 let currentLesson = null;      // { _id, name, description, words:[{_id,melayu,arab,icon}] }
+let currentMode = 'tembak';    // 'tembak' | 'padan' | 'isyarat' | 'masa' | 'ingat'
 let masteredIds = new Set();
 let drones = [];
 let particles = [];
 let score = 0, combo = 1, maxComboReached = 1, missedShots = 0, correctHits = 0;
-let reticle = { x: -100, y: -100, visible: false };
+let reticle = { x: -100, y: -100 };
 let rawPalm = null;
 let openPalm = false;
+let isPinching = false;
+let pinchPoint = null;
+let fingerCount = 0;
 let lockTarget = null;         // drone object being locked
 let lockStart = 0;
 let lostSince = 0;
 let roundBusy = false;         // true while resolving a shot / showing feedback
 let shakeFrames = 0;
 let beamFx = null;             // {from:{x,y}, to:{x,y}, life}
-let missionType = 'A';         // 'A' = cari perkataan Arab, 'B' = kenal maksud
+let missionType = 'A';         // 'A' = cari perkataan sasaran, 'B' = kenal maksud
+let revealUntil = 0;           // Mod Ingat - masa (ms) sehingga perkataan tersembunyi
+let timeAttackEndAt = 0;       // Mod Lawan Masa - masa tamat
 let mpCamera = null;
 let handsModel = null;
 let videoMetrics = { vw: 1, vh: 1, scale: 1, sw: 1, sh: 1, sx: 0, sy: 0 };
 let gameActive = false;
+
+// Mod Padan
+let matchLeft = [], matchRight = [];
+let matchHeld = null;
+let matchHeldPos = { x: 0, y: 0 };
+let matchRoundTotal = 0, matchRoundDone = 0;
+
+// Mod Isyarat Jari
+let quizOptions = [];
+let quizTargetWord = null;
+let quizHoldCount = -1;
+let quizHoldStart = 0;
 
 // ------------------------------------------------------------------
 // AUDIO — Procedural Sound Synthesizer (Web Audio API, tiada fail .mp3/.wav)
@@ -310,12 +410,9 @@ function noiseBurst(dur, filterFreq = 900, peak = 0.35) {
 }
 const SFX = {
   targetLock: () => tone(880, 0.09, 'triangle', 0.15),
-  chargeRamp: () => tone(220, CONFIG.GAME.lockChargeMs / 1000, 'sawtooth', 0.06, 900),
   fire: () => tone(1200, 0.18, 'square', 0.16, 200),
   explosion: () => { noiseBurst(0.35, 500, 0.4); tone(120, 0.3, 'sine', 0.2, 40); },
   deflect: () => { tone(160, 0.2, 'sawtooth', 0.2, 90); },
-  victory: () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.22, 'triangle', 0.15), i * 90)); },
-  error: () => tone(200, 0.15, 'square', 0.15),
   missionComplete: () => { [392, 523, 659, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, 0.3, 'triangle', 0.14), i * 110)); },
 };
 
@@ -326,6 +423,7 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const dist = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
+const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
 function setNova(text) { els.novaText.textContent = text; }
 
@@ -355,11 +453,11 @@ async function loadLessonList() {
     lessons.forEach((l) => {
       const opt = document.createElement('option');
       opt.value = l._id;
-      opt.textContent = `${l.name} (${l.wordCount} perkataan)`;
+      opt.textContent = `${l.name} (${l.wordCount} item)`;
       if (l.wordCount === 0) opt.disabled = true;
       els.lessonSelect.appendChild(opt);
     });
-    els.lessonStatus.textContent = 'Pilih topik dan tekan MULA MISI.';
+    els.lessonStatus.textContent = 'Pilih topik dan tekan SETERUSNYA.';
     els.startBtn.disabled = false;
   } catch (err) {
     els.lessonStatus.textContent = 'Gagal sambung ke pangkalan data. Semak server / MongoDB Atlas (lihat README).';
@@ -391,19 +489,24 @@ function onHandsResults(results) {
     const pairs = [[8, 6], [12, 10], [16, 14], [20, 18]];
     const extendedCount = pairs.reduce((n, [t, p]) => n + (fingerExtended(lm, t, p) ? 1 : 0), 0);
     openPalm = extendedCount >= CONFIG.HAND.openPalmMinFingers;
+    fingerCount = extendedCount;
 
     const idxs = [0, 5, 9, 13, 17];
     let cx = 0, cy = 0;
     idxs.forEach((i) => { cx += lm[i].x; cy += lm[i].y; });
     cx /= idxs.length; cy /= idxs.length;
-
     rawPalm = landmarkToScreen({ x: cx, y: cy });
-    rawPalm.landmarks = lm;
-    reticle.visible = true;
+
+    const handSpan = dist(lm[0].x, lm[0].y, lm[9].x, lm[9].y) || 0.08;
+    const pinchDist = dist(lm[4].x, lm[4].y, lm[8].x, lm[8].y);
+    isPinching = (pinchDist / handSpan) < CONFIG.HAND.pinchRatio;
+    pinchPoint = landmarkToScreen({ x: (lm[4].x + lm[8].x) / 2, y: (lm[4].y + lm[8].y) / 2 });
   } else {
     openPalm = false;
-    reticle.visible = false;
     rawPalm = null;
+    isPinching = false;
+    pinchPoint = null;
+    fingerCount = 0;
   }
 }
 
@@ -446,28 +549,55 @@ function stopCamera() {
 }
 
 // ------------------------------------------------------------------
-// RONDE PERMAINAN
+// PERKATAAN / KEMAJUAN (dikongsi oleh semua mod)
 // ------------------------------------------------------------------
 function remainingWords() {
   return currentLesson.words.filter((w) => !masteredIds.has(w._id));
 }
 
+function updateHUD() {
+  els.hudScore.textContent = score;
+  els.hudCombo.textContent = '×' + combo;
+  if (currentMode === 'masa') {
+    const remainSec = Math.max(0, Math.ceil((timeAttackEndAt - performance.now()) / 1000));
+    els.progressLabel.textContent = `⏱ MASA BAKI: ${remainSec}s  •  BETUL: ${correctHits}`;
+    els.progressDots.innerHTML = '';
+  } else {
+    const total = currentLesson.words.length;
+    const done = masteredIds.size;
+    els.progressLabel.textContent = `MISI ${done}/${total}`;
+    els.progressDots.innerHTML = '';
+    currentLesson.words.forEach((w) => {
+      const dot = document.createElement('span');
+      dot.className = 'node-dot' + (masteredIds.has(w._id) ? ' done' : '');
+      els.progressDots.appendChild(dot);
+    });
+  }
+}
+function updateMasaTimerDisplay() {
+  const remainSec = Math.max(0, Math.ceil((timeAttackEndAt - performance.now()) / 1000));
+  els.progressLabel.textContent = `⏱ MASA BAKI: ${remainSec}s  •  BETUL: ${correctHits}`;
+}
+
+// ------------------------------------------------------------------
+// MOD: TEMBAK / LAWAN MASA / INGAT (berkongsi mekanik sasar+tembak)
+// ------------------------------------------------------------------
 function pickRoundWords() {
-  const remain = remainingWords();
-  const targetWord = remain[Math.floor(Math.random() * remain.length)];
-  const pool = currentLesson.words.filter((w) => w._id !== targetWord._id);
-  const decoyCount = Math.min(CONFIG.GAME.dronesPerRound - 1, pool.length);
-  const decoys = [...pool].sort(() => Math.random() - 0.5).slice(0, decoyCount);
-  const all = [...decoys, targetWord].sort(() => Math.random() - 0.5);
+  const pool = currentMode === 'masa' ? currentLesson.words : remainingWords();
+  const targetWord = pool[Math.floor(Math.random() * pool.length)];
+  const others = currentLesson.words.filter((w) => w._id !== targetWord._id);
+  const decoyCount = Math.min(CONFIG.GAME.dronesPerRound - 1, others.length);
+  const decoys = shuffle(others).slice(0, decoyCount);
+  const all = shuffle([...decoys, targetWord]);
   return { targetWord, all };
 }
 
-function layoutDrones(list, target) {
+function layoutDrones(list, target, forceMissionType) {
   drones = [];
   const n = list.length;
   const marginX = W * 0.12;
   const usableW = W - marginX * 2;
-  missionType = Math.random() < 0.5 ? 'A' : 'B';
+  missionType = forceMissionType || (Math.random() < 0.5 ? 'A' : 'B');
 
   list.forEach((w, i) => {
     const slotW = usableW / n;
@@ -480,50 +610,31 @@ function layoutDrones(list, target) {
       vx: rand(-14, 14),
       bobPhase: rand(0, Math.PI * 2),
       radius: CONFIG.GAME.droneRadius,
-      spawnT: performance.now(),
+      revealed: true,
     });
   });
 
   if (missionType === 'A') {
     els.bannerLabel.textContent = 'SASARAN';
     els.bannerTarget.textContent = target.melayu.toUpperCase();
-    els.bannerTarget.classList.remove('font-arabic'); els.bannerTarget.setAttribute('dir', 'ltr');
-    setNova(`SASARAN: ${target.melayu.toUpperCase()}. Cari drone dengan perkataan Arab yang betul.`);
+    els.bannerTarget.classList.remove('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
+    setNova(`SASARAN: ${target.melayu.toUpperCase()}. Cari drone dengan jawapan yang betul.`);
   } else {
     els.bannerLabel.textContent = 'APAKAH MAKSUD PERKATAAN INI?';
     els.bannerTarget.textContent = target.arab;
-    els.bannerTarget.classList.add('font-arabic'); els.bannerTarget.setAttribute('dir', 'rtl');
+    els.bannerTarget.classList.add('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
     setNova('Apakah maksud perkataan ini? Cari drone dengan maksud yang betul.');
   }
-}
 
-function updateHUD() {
-  els.hudScore.textContent = score;
-  els.hudCombo.textContent = '×' + combo;
-  const total = currentLesson.words.length;
-  const done = masteredIds.size;
-  els.progressLabel.textContent = `ARABIC MISSION ${done}/${total}`;
-  els.progressDots.innerHTML = '';
-  currentLesson.words.forEach((w) => {
-    const dot = document.createElement('span');
-    dot.className = 'node-dot' + (masteredIds.has(w._id) ? ' done' : '');
-    els.progressDots.appendChild(dot);
-  });
+  if (currentMode === 'ingat') revealUntil = performance.now() + CONFIG.GAME.memoryRevealMs;
 }
 
 function nextRound() {
   roundBusy = false;
   lockTarget = null;
   const { targetWord, all } = pickRoundWords();
-  layoutDrones(all, targetWord);
+  layoutDrones(all, targetWord, currentMode === 'ingat' ? 'A' : undefined);
   updateHUD();
-}
-
-function startMissionLoop() {
-  score = 0; combo = 1; maxComboReached = 1; missedShots = 0; correctHits = 0;
-  masteredIds = new Set();
-  updateHUD();
-  nextRound();
 }
 
 function resolveShot(hitDrone) {
@@ -550,12 +661,14 @@ function resolveShot(hitDrone) {
     els.bannerLabel.textContent = 'BUKAN SASARAN';
   }
   updateHUD();
-  drones.forEach((d) => { if (d !== hitDrone) d.fading = true; });
+  drones.forEach((d) => { if (d !== hitDrone) d.fading = true; d.revealed = true; });
   hitDrone.hit = true;
 
   setTimeout(() => {
     drones = [];
-    if (remainingWords().length === 0) {
+    if (currentMode === 'masa') {
+      if (performance.now() < timeAttackEndAt) nextRound(); else endTimeAttack();
+    } else if (remainingWords().length === 0) {
       showVictory();
     } else {
       nextRound();
@@ -569,6 +682,218 @@ function fireAtDrone(drone) {
   SFX.fire();
   beamFx = { from: { x: W / 2, y: H - 40 }, to: { x: drone.x, y: drone.y }, life: 14 };
   setTimeout(() => resolveShot(drone), 160);
+}
+
+function updateShootModeLogic() {
+  if (rawPalm) {
+    reticle.x = lerp(reticle.x, rawPalm.x, CONFIG.HAND.smoothing);
+    reticle.y = lerp(reticle.y, rawPalm.y, CONFIG.HAND.smoothing);
+  }
+  if (rawPalm && openPalm && !roundBusy) {
+    let hovered = null, best = Infinity;
+    drones.forEach((d) => {
+      const dd = dist(reticle.x, reticle.y, d.x, d.y);
+      if (dd < d.radius + CONFIG.HAND.aimHitPadding && dd < best) { best = dd; hovered = d; }
+    });
+    if (hovered) {
+      lostSince = 0;
+      if (lockTarget !== hovered) { lockTarget = hovered; lockStart = performance.now(); SFX.targetLock(); setNova('Sasaran dikesan. Kunci sasaran...'); }
+      const pct = (performance.now() - lockStart) / CONFIG.GAME.lockChargeMs;
+      if (pct >= 1) { setNova('FIRE!'); fireAtDrone(hovered); }
+      else if (pct > 0.05 && pct < 0.15) setNova('Tenaga sedang dicas...');
+    } else if (lockTarget) {
+      if (!lostSince) lostSince = performance.now();
+      if (performance.now() - lostSince > CONFIG.HAND.lostGraceMs) lockTarget = null;
+    }
+  } else if (lockTarget) {
+    lockTarget = null;
+  }
+}
+
+function startTimeAttack() {
+  timeAttackEndAt = performance.now() + CONFIG.GAME.timeAttackSeconds * 1000;
+  nextRound();
+}
+
+function endTimeAttack() {
+  showVictoryModalCommon(`${correctHits} jawapan betul`);
+}
+
+// ------------------------------------------------------------------
+// MOD: PADAN (Matching - pinch & drag)
+// ------------------------------------------------------------------
+function startPadanRound() {
+  const remain = remainingWords();
+  const n = Math.min(CONFIG.MATCH.pairsPerRound, remain.length);
+  const chosen = shuffle(remain).slice(0, n);
+  matchRoundTotal = n; matchRoundDone = 0;
+  const marginY = H * 0.16, usableH = H * 0.68;
+  matchLeft = chosen.map((w, i) => ({ word: w, matched: false, x: W * 0.24, y: marginY + usableH * ((i + 0.5) / n) }));
+  matchRight = shuffle(chosen).map((w, i) => ({ word: w, matched: false, x: W * 0.76, y: marginY + usableH * ((i + 0.5) / n) }));
+  matchHeld = null;
+  els.bannerLabel.textContent = 'MOD PADAN';
+  els.bannerTarget.textContent = 'Sambungkan pasangan yang betul';
+  els.bannerTarget.classList.remove('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
+  setNova('Cubit (ibu jari + telunjuk rapat) kad kiri, tarik ke jawapan yang betul di kanan.');
+  updateHUD();
+}
+
+function updateMatchingLogic() {
+  const p = pinchPoint || rawPalm;
+  if (!p) { matchHeld = null; return; }
+  matchHeldPos.x = matchHeldPos.x ? lerp(matchHeldPos.x, p.x, 0.45) : p.x;
+  matchHeldPos.y = matchHeldPos.y ? lerp(matchHeldPos.y, p.y, 0.45) : p.y;
+
+  if (isPinching) {
+    if (!matchHeld) {
+      let best = null, bestD = 90;
+      matchLeft.forEach((c) => { if (c.matched) return; const dd = dist(p.x, p.y, c.x, c.y); if (dd < bestD) { bestD = dd; best = c; } });
+      if (best) matchHeld = best;
+    }
+  } else if (matchHeld) {
+    let best = null, bestD = 90;
+    matchRight.forEach((c) => { if (c.matched) return; const dd = dist(matchHeldPos.x, matchHeldPos.y, c.x, c.y); if (dd < bestD) { bestD = dd; best = c; } });
+    if (best) {
+      if (best.word._id === matchHeld.word._id) {
+        matchHeld.matched = true; best.matched = true;
+        matchRoundDone++;
+        correctHits++;
+        score += 100 * combo; combo = Math.min(CONFIG.GAME.maxCombo, combo + 1); maxComboReached = Math.max(maxComboReached, combo);
+        masteredIds.add(matchHeld.word._id);
+        SFX.explosion(); spawnExplosion(best.x, best.y, '#22e3f5');
+        setNova(`Bagus! ${matchHeld.word.melayu} = ${matchHeld.word.arab}`);
+        updateHUD();
+        if (matchRoundDone >= matchRoundTotal) {
+          setTimeout(() => { remainingWords().length === 0 ? showVictory() : startPadanRound(); }, 900);
+        }
+      } else {
+        combo = 1; missedShots++;
+        SFX.deflect(); shakeFrames = 10;
+        spawnShield(best.x, best.y);
+        setNova('Belum tepat, cuba lagi.');
+        updateHUD();
+      }
+    }
+    matchHeld = null;
+  }
+}
+
+function drawMatchCard(c, isRightSide) {
+  if (c.matched) return;
+  const isHeld = c === matchHeld;
+  const cx = isHeld ? matchHeldPos.x : c.x;
+  const cy = isHeld ? matchHeldPos.y : c.y;
+  const w = 240, h = 54;
+  ctx.save();
+  if (isHeld) { ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 26; }
+  const grad = ctx.createLinearGradient(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2);
+  grad.addColorStop(0, isHeld ? 'rgba(34,227,245,0.35)' : 'rgba(59,130,246,0.28)');
+  grad.addColorStop(1, 'rgba(139,92,246,0.28)');
+  ctx.fillStyle = grad;
+  roundRect(cx - w / 2, cy - h / 2, w, h, 14);
+  ctx.fill();
+  ctx.strokeStyle = isHeld ? '#22e3f5' : 'rgba(34,227,245,0.6)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#e6fbff';
+  if (isRightSide) {
+    ctx.direction = 'rtl'; ctx.font = '600 22px "Noto Naskh Arabic", serif';
+    ctx.fillText(c.word.arab, cx, cy);
+  } else {
+    ctx.direction = 'ltr'; ctx.font = '700 15px Kanit, sans-serif';
+    ctx.fillText(c.word.melayu.toUpperCase(), cx, cy);
+  }
+  ctx.restore();
+}
+
+function drawMatchingScene() {
+  if (matchHeld) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(34,227,245,0.5)'; ctx.lineWidth = 3; ctx.setLineDash([6, 6]);
+    ctx.beginPath(); ctx.moveTo(matchHeld.x, matchHeld.y); ctx.lineTo(matchHeldPos.x, matchHeldPos.y); ctx.stroke();
+    ctx.restore();
+  }
+  matchLeft.forEach((c) => drawMatchCard(c, false));
+  matchRight.forEach((c) => drawMatchCard(c, true));
+}
+
+// ------------------------------------------------------------------
+// MOD: ISYARAT JARI (Finger Quiz)
+// ------------------------------------------------------------------
+function startIsyaratRound() {
+  const remain = remainingWords();
+  const target = remain[Math.floor(Math.random() * remain.length)];
+  quizTargetWord = target;
+  const wrongPool = currentLesson.words.filter((w) => w._id !== target._id);
+  const wrongs = shuffle(wrongPool).slice(0, Math.min(3, wrongPool.length));
+  const opts = [{ text: target.melayu, correct: true }, ...wrongs.map((w) => ({ text: w.melayu, correct: false }))];
+  quizOptions = shuffle(opts);
+  quizHoldCount = -1; quizHoldStart = 0;
+
+  els.bannerLabel.textContent = 'APAKAH MAKSUD PERKATAAN INI?';
+  els.bannerTarget.textContent = target.arab;
+  els.bannerTarget.classList.add('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
+  setNova('Tunjuk bilangan jari (1-4) ikut nombor pilihan jawapan yang betul, tahan sekejap.');
+  renderQuizOptionsPanel();
+  updateHUD();
+}
+
+function renderQuizOptionsPanel() {
+  els.quizPanel.innerHTML = '';
+  quizOptions.forEach((o, i) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-option';
+    div.innerHTML = `<span class="quiz-num">${i + 1}</span><span class="quiz-fill"></span><span class="quiz-text">${o.text}</span>`;
+    els.quizPanel.appendChild(div);
+  });
+}
+
+function updateQuizProgress(activeIdx, pct) {
+  [...els.quizPanel.children].forEach((el, i) => {
+    const fill = el.querySelector('.quiz-fill');
+    if (fill) fill.style.width = (i === activeIdx ? pct * 100 : 0) + '%';
+    el.classList.toggle('active', i === activeIdx);
+  });
+}
+
+function updateFingerQuizLogic() {
+  if (roundBusy) return;
+  const count = fingerCount;
+  if (count >= 1 && count <= 4 && openPalm) {
+    if (quizHoldCount !== count) { quizHoldCount = count; quizHoldStart = performance.now(); }
+    const held = performance.now() - quizHoldStart;
+    updateQuizProgress(count - 1, clamp(held / CONFIG.GAME.fingerHoldMs, 0, 1));
+    if (held >= CONFIG.GAME.fingerHoldMs) resolveQuizAnswer(count - 1);
+  } else {
+    quizHoldCount = -1;
+    updateQuizProgress(-1, 0);
+  }
+}
+
+function resolveQuizAnswer(idx) {
+  roundBusy = true;
+  const opt = quizOptions[idx];
+  [...els.quizPanel.children].forEach((el, i) => {
+    if (i === idx) el.classList.add(opt.correct ? 'correct' : 'wrong');
+    else if (quizOptions[i].correct) el.classList.add('correct');
+  });
+  if (opt.correct) {
+    correctHits++;
+    score += 100 * combo; combo = Math.min(CONFIG.GAME.maxCombo, combo + 1); maxComboReached = Math.max(maxComboReached, combo);
+    masteredIds.add(quizTargetWord._id);
+    SFX.explosion();
+    setNova(`Bagus! ${quizTargetWord.arab} = ${quizTargetWord.melayu}`);
+  } else {
+    missedShots++;
+    combo = 1;
+    SFX.deflect(); shakeFrames = 10;
+    setNova(`Cuba lagi. Jawapan betul ialah "${quizTargetWord.melayu}".`);
+  }
+  updateHUD();
+  setTimeout(() => {
+    roundBusy = false;
+    if (remainingWords().length === 0) showVictory(); else startIsyaratRound();
+  }, CONFIG.GAME.feedbackDelayMs);
 }
 
 // ------------------------------------------------------------------
@@ -611,14 +936,12 @@ function drawBackground(t) {
   g.addColorStop(0, 'rgba(6,10,24,0.55)'); g.addColorStop(1, 'rgba(3,5,14,0.75)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 
-  // grid holografik halus
   ctx.save(); ctx.globalAlpha = 0.06; ctx.strokeStyle = '#22e3f5'; ctx.lineWidth = 1;
   const spacing = 60;
   for (let x = (t * 0.01) % spacing; x < W; x += spacing) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
   for (let y = 0; y < H; y += spacing) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
   ctx.restore();
 
-  // partikel cahaya terapung
   ctx.save();
   for (let i = 0; i < 22; i++) {
     const px = (i * 137.5 + t * 0.01) % W;
@@ -639,7 +962,6 @@ function drawVideoCover() {
   ctx.translate(W, 0); ctx.scale(-1, 1);
   ctx.drawImage(els.video, videoMetrics.sx, videoMetrics.sy, videoMetrics.sw, videoMetrics.sh, 0, 0, W, H);
   ctx.restore();
-  // tint sci-fi
   ctx.save(); ctx.globalAlpha = 0.30; ctx.fillStyle = '#050a18'; ctx.fillRect(0, 0, W, H); ctx.restore();
 }
 
@@ -655,7 +977,6 @@ function drawDrone(d, t) {
   ctx.save();
   ctx.globalAlpha = fading ? 0.25 : 1;
 
-  // reactor glow ring
   ctx.save();
   ctx.globalAlpha *= 0.5 + 0.15 * Math.sin(t * 0.006);
   ctx.strokeStyle = d.hit ? (d.correct ? '#22e3f5' : '#ef4444') : '#8b5cf6';
@@ -663,7 +984,6 @@ function drawDrone(d, t) {
   ctx.beginPath(); ctx.arc(cx, cy, d.radius * 0.95, 0, 7); ctx.stroke();
   ctx.restore();
 
-  // panel body
   const grad = ctx.createLinearGradient(cx - d.radius, cy - d.radius, cx + d.radius, cy + d.radius);
   grad.addColorStop(0, 'rgba(59,130,246,0.28)'); grad.addColorStop(1, 'rgba(139,92,246,0.28)');
   ctx.fillStyle = grad;
@@ -671,7 +991,6 @@ function drawDrone(d, t) {
   ctx.fill();
   ctx.strokeStyle = 'rgba(34,227,245,0.7)'; ctx.lineWidth = 1.5; ctx.stroke();
 
-  // mechanical arms
   ctx.strokeStyle = 'rgba(148,163,184,0.6)'; ctx.lineWidth = 2;
   [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
     ctx.beginPath();
@@ -682,23 +1001,29 @@ function drawDrone(d, t) {
     ctx.fillStyle = 'rgba(34,227,245,0.8)'; ctx.fill();
   });
 
-  // teks perkataan
-  const showArabic = missionType === 'A';
+  const memoryHidden = currentMode === 'ingat' && performance.now() > revealUntil;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  if (showArabic) {
-    ctx.direction = 'rtl';
-    ctx.font = '600 30px "Noto Naskh Arabic", serif';
-    ctx.fillStyle = '#e6fbff'; ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 10;
-    ctx.fillText(d.word.arab, cx, cy);
-  } else {
+  if (memoryHidden) {
     ctx.direction = 'ltr';
-    ctx.font = '700 15px Kanit, sans-serif';
-    ctx.fillStyle = '#e6fbff'; ctx.shadowColor = '#8b5cf6'; ctx.shadowBlur = 8;
-    wrapText(d.word.melayu.toUpperCase(), cx, cy, d.radius * 1.7, 17);
+    ctx.font = '700 34px Kanit, sans-serif';
+    ctx.fillStyle = '#94a3b8'; ctx.shadowColor = '#8b5cf6'; ctx.shadowBlur = 8;
+    ctx.fillText('❓', cx, cy);
+  } else {
+    const showArabic = missionType === 'A';
+    if (showArabic) {
+      ctx.direction = 'rtl';
+      ctx.font = '600 30px "Noto Naskh Arabic", serif';
+      ctx.fillStyle = '#e6fbff'; ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 10;
+      ctx.fillText(d.word.arab, cx, cy);
+    } else {
+      ctx.direction = 'ltr';
+      ctx.font = '700 15px Kanit, sans-serif';
+      ctx.fillStyle = '#e6fbff'; ctx.shadowColor = '#8b5cf6'; ctx.shadowBlur = 8;
+      wrapText(d.word.melayu.toUpperCase(), cx, cy, d.radius * 1.7, 17);
+    }
   }
   ctx.restore();
 
-  // target lock reticle
   if (isTargeted && !roundBusy) {
     const pct = clamp((performance.now() - lockStart) / CONFIG.GAME.lockChargeMs, 0, 1);
     ctx.save();
@@ -706,7 +1031,6 @@ function drawDrone(d, t) {
     ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2.5; ctx.shadowColor = '#f59e0b'; ctx.shadowBlur = 14;
     ctx.strokeRect(-d.radius * 1.15, -d.radius * 1.15, d.radius * 2.3, d.radius * 2.3);
     ctx.restore();
-    // charge arc
     ctx.save();
     ctx.strokeStyle = '#22e3f5'; ctx.lineWidth = 5; ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 12;
     ctx.beginPath(); ctx.arc(cx, cy, d.radius * 1.35, -Math.PI / 2, -Math.PI / 2 + pct * Math.PI * 2);
@@ -736,12 +1060,7 @@ function wrapText(text, cx, cy, maxWidth, lineHeight) {
 }
 
 function drawGauntlet(t) {
-  if (!rawPalm) { reticle.visible = false; return; }
-  reticle.x = lerp(reticle.x, rawPalm.x, CONFIG.HAND.smoothing);
-  reticle.y = lerp(reticle.y, rawPalm.y, CONFIG.HAND.smoothing);
-
-  if (!openPalm) return;
-
+  if (!rawPalm || !openPalm) return;
   ctx.save();
   const pulse = 1 + 0.06 * Math.sin(t * 0.006);
   ctx.strokeStyle = '#22e3f5'; ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 22; ctx.lineWidth = 2.5;
@@ -750,11 +1069,9 @@ function drawGauntlet(t) {
   ctx.strokeStyle = '#8b5cf6'; ctx.shadowColor = '#8b5cf6'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.arc(reticle.x, reticle.y, 48 * pulse, 0, 7); ctx.stroke();
 
-  // arc core
   ctx.fillStyle = '#e6fbff'; ctx.shadowBlur = 26; ctx.shadowColor = '#22e3f5';
   ctx.beginPath(); ctx.arc(reticle.x, reticle.y, 6, 0, 7); ctx.fill();
 
-  // crosshair
   ctx.lineWidth = 1.2; ctx.strokeStyle = 'rgba(34,227,245,0.8)';
   [0, 90, 180, 270].forEach((deg) => {
     const r1 = 54, r2 = 66, rad = (deg * Math.PI) / 180;
@@ -763,6 +1080,31 @@ function drawGauntlet(t) {
     ctx.lineTo(reticle.x + Math.cos(rad) * r2, reticle.y + Math.sin(rad) * r2);
     ctx.stroke();
   });
+  ctx.restore();
+}
+
+function drawPinchCursor(t) {
+  if (!rawPalm) return;
+  const target = pinchPoint || rawPalm;
+  reticle.x = lerp(reticle.x, target.x, CONFIG.HAND.smoothing);
+  reticle.y = lerp(reticle.y, target.y, CONFIG.HAND.smoothing);
+  ctx.save();
+  ctx.strokeStyle = isPinching ? '#22e3f5' : 'rgba(148,163,184,0.7)';
+  ctx.lineWidth = 3; ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = isPinching ? 22 : 8;
+  ctx.beginPath(); ctx.arc(reticle.x, reticle.y, isPinching ? 14 : 20, 0, 7); ctx.stroke();
+  if (isPinching) { ctx.fillStyle = '#22e3f5'; ctx.beginPath(); ctx.arc(reticle.x, reticle.y, 5, 0, 7); ctx.fill(); }
+  ctx.restore();
+}
+
+function drawFingerCursor(t) {
+  if (!rawPalm) return;
+  reticle.x = lerp(reticle.x, rawPalm.x, CONFIG.HAND.smoothing);
+  reticle.y = lerp(reticle.y, rawPalm.y, CONFIG.HAND.smoothing);
+  ctx.save();
+  ctx.strokeStyle = '#8b5cf6'; ctx.lineWidth = 2.5; ctx.shadowColor = '#8b5cf6'; ctx.shadowBlur = 16;
+  ctx.beginPath(); ctx.arc(reticle.x, reticle.y, 30, 0, 7); ctx.stroke();
+  ctx.fillStyle = '#e6fbff'; ctx.font = '700 22px Orbitron, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(fingerCount >= 1 && fingerCount <= 4 ? String(fingerCount) : '–', reticle.x, reticle.y);
   ctx.restore();
 }
 
@@ -792,32 +1134,23 @@ function loop(t) {
   drawBackground(t);
 
   if (gameActive) {
-    // logik penguncian sasaran
-    if (rawPalm && openPalm && !roundBusy) {
-      let hovered = null, best = Infinity;
-      drones.forEach((d) => {
-        const dd = dist(reticle.x, reticle.y, d.x, d.y);
-        if (dd < d.radius + CONFIG.HAND.aimHitPadding && dd < best) { best = dd; hovered = d; }
-      });
-      if (hovered) {
-        lostSince = 0;
-        if (lockTarget !== hovered) { lockTarget = hovered; lockStart = performance.now(); SFX.targetLock(); setNova('Sasaran dikesan. Kunci sasaran...'); }
-        const pct = (performance.now() - lockStart) / CONFIG.GAME.lockChargeMs;
-        if (pct >= 1) { setNova('FIRE!'); fireAtDrone(hovered); }
-        else if (pct > 0.05 && pct < 0.15) setNova('Tenaga sedang dicas...');
-      } else if (lockTarget) {
-        if (!lostSince) lostSince = performance.now();
-        if (performance.now() - lostSince > CONFIG.HAND.lostGraceMs) lockTarget = null;
-      }
-    } else if (lockTarget) {
-      lockTarget = null;
+    if (currentMode === 'padan') {
+      updateMatchingLogic();
+      drawMatchingScene();
+      drawPinchCursor(t);
+    } else if (currentMode === 'isyarat') {
+      updateFingerQuizLogic();
+      drawFingerCursor(t);
+    } else {
+      // tembak / masa / ingat - berkongsi mekanik sasar & tembak
+      updateShootModeLogic();
+      drones.forEach((d) => drawDrone(d, t));
+      drawGauntlet(t);
+      drawBeam(t);
+      if (currentMode === 'masa') updateMasaTimerDisplay();
     }
-
-    drones.forEach((d) => drawDrone(d, t));
   }
 
-  drawGauntlet(t);
-  drawBeam(t);
   updateParticles(dt);
   drawParticles();
 
@@ -826,7 +1159,7 @@ function loop(t) {
 }
 
 // ------------------------------------------------------------------
-// ALIRAN UI (modal -> permainan -> victory -> review/menu)
+// ALIRAN UI (modal -> mod -> permainan -> victory -> review/menu)
 // ------------------------------------------------------------------
 function showModal(el) { el.classList.remove('hidden'); }
 function hideModal(el) { el.classList.add('hidden'); }
@@ -835,29 +1168,47 @@ async function goToStartMenu() {
   gameActive = false;
   stopCamera();
   els.hud.classList.add('hidden');
-  hideModal(els.victoryModal); hideModal(els.reviewModal);
+  els.quizPanel.classList.add('hidden');
+  hideModal(els.victoryModal); hideModal(els.reviewModal); hideModal(els.modeModal);
+  drones = []; matchLeft = []; matchRight = []; matchHeld = null;
   showModal(els.startModal);
   loadLessonList();
 }
 
-async function beginGame(lessonId) {
+async function chooseLesson(lessonId) {
   hideModal(els.startModal);
   showModal(els.loadingModal);
   els.loadingMsg.textContent = 'Memuatkan kandungan pelajaran...';
-  els.loadingBar.style.width = '20%';
+  els.loadingBar.style.width = '30%';
   try {
     currentLesson = await loadLessonDetail(lessonId);
     if (!currentLesson.words || currentLesson.words.length < 2) {
-      els.loadingMsg.textContent = 'Set pelajaran ini perlu sekurang-kurangnya 2 perkataan. Sila tambah di /game-arab-admin.html.';
+      hideModal(els.loadingModal);
+      els.lessonStatus.textContent = 'Set pelajaran ini perlu sekurang-kurangnya 2 perkataan. Sila tambah di /game-arab-admin.html.';
+      showModal(els.startModal);
       return;
     }
     els.hudLessonName.textContent = currentLesson.name.toUpperCase();
-    els.loadingBar.style.width = '45%';
-    els.loadingMsg.textContent = 'Mengaktifkan sistem pengesanan tangan...';
+    els.modeModalLessonName.textContent = `Topik: ${currentLesson.name}`;
+    hideModal(els.loadingModal);
+    showModal(els.modeModal);
+  } catch (err) {
+    console.error(err);
+    hideModal(els.loadingModal);
+    els.lessonStatus.textContent = 'Gagal muat kandungan pelajaran. Cuba lagi.';
+    showModal(els.startModal);
+  }
+}
 
+async function selectModeAndStart(mode) {
+  currentMode = mode;
+  hideModal(els.modeModal);
+  showModal(els.loadingModal);
+  els.loadingMsg.textContent = 'Mengaktifkan sistem pengesanan tangan...';
+  els.loadingBar.style.width = '50%';
+  try {
     await document.fonts.ready;
-    els.loadingBar.style.width = '65%';
-
+    els.loadingBar.style.width = '70%';
     resizeCanvas();
     await initHandsAndCamera();
     els.loadingBar.style.width = '100%';
@@ -865,8 +1216,9 @@ async function beginGame(lessonId) {
     setTimeout(() => {
       hideModal(els.loadingModal);
       els.hud.classList.remove('hidden');
+      els.quizPanel.classList.toggle('hidden', mode !== 'isyarat');
       gameActive = true;
-      startMissionLoop();
+      startGameSession();
     }, 300);
   } catch (err) {
     console.error(err);
@@ -875,10 +1227,18 @@ async function beginGame(lessonId) {
   }
 }
 
-function showVictory() {
+function startGameSession() {
+  score = 0; combo = 1; maxComboReached = 1; missedShots = 0; correctHits = 0;
+  masteredIds = new Set();
+  if (currentMode === 'padan') startPadanRound();
+  else if (currentMode === 'isyarat') startIsyaratRound();
+  else if (currentMode === 'masa') startTimeAttack();
+  else nextRound(); // tembak / ingat
+}
+
+function showVictoryModalCommon(wordsLabelText) {
   gameActive = false;
   SFX.missionComplete();
-  const total = currentLesson.words.length;
   const attempts = correctHits + missedShots;
   const acc = attempts ? correctHits / attempts : 1;
   const starCount = acc >= 0.9 ? 3 : acc >= 0.65 ? 2 : 1;
@@ -889,8 +1249,13 @@ function showVictory() {
   els.statScore.textContent = score;
   els.statCombo.textContent = '×' + maxComboReached;
   els.statMiss.textContent = missedShots;
-  els.statWords.textContent = `${total}/${total}`;
+  els.statWords.textContent = wordsLabelText;
   showModal(els.victoryModal);
+}
+
+function showVictory() {
+  const total = currentLesson.words.length;
+  showVictoryModalCommon(`${total}/${total}`);
 }
 
 function buildReviewList() {
@@ -899,7 +1264,7 @@ function buildReviewList() {
     const row = document.createElement('div');
     row.className = 'glass rounded-lg px-3 py-2 flex items-center justify-between';
     row.innerHTML = `
-      <span class="font-arabic text-xl" dir="rtl">${w.arab}</span>
+      <span class="font-arabic text-xl" dir="auto">${w.arab}</span>
       <span class="text-lg">${w.icon || ''}</span>
       <span class="font-kanit text-sm text-cyan-200">${w.melayu}</span>`;
     els.reviewList.appendChild(row);
@@ -911,18 +1276,22 @@ function buildReviewList() {
 // ------------------------------------------------------------------
 els.startBtn.addEventListener('click', () => {
   const id = els.lessonSelect.value;
-  if (id) beginGame(id);
+  if (id) chooseLesson(id);
+});
+els.modeBackBtn.addEventListener('click', () => { hideModal(els.modeModal); showModal(els.startModal); });
+document.querySelectorAll('.mode-card').forEach((btn) => {
+  btn.addEventListener('click', () => selectModeAndStart(btn.dataset.mode));
 });
 els.retryCameraBtn.addEventListener('click', () => {
   hideModal(els.cameraErrorModal);
-  const id = els.lessonSelect.value;
-  if (id) beginGame(id); else goToStartMenu();
+  if (currentLesson) selectModeAndStart(currentMode); else goToStartMenu();
 });
 els.replayBtn.addEventListener('click', () => {
   hideModal(els.victoryModal);
   els.hud.classList.remove('hidden');
+  els.quizPanel.classList.toggle('hidden', currentMode !== 'isyarat');
   gameActive = true;
-  startMissionLoop();
+  startGameSession();
 });
 els.reviewBtn.addEventListener('click', () => { buildReviewList(); hideModal(els.victoryModal); showModal(els.reviewModal); });
 els.reviewCloseBtn.addEventListener('click', () => { hideModal(els.reviewModal); showModal(els.victoryModal); });

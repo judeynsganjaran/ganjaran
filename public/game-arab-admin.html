@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Arab — Panel Guru 🕹️</title>
+<title>Ilmuverse Gamebox — Panel Guru 🎮</title>
 <link rel="stylesheet" href="/css/style.css">
 <style>
   .word-row {
@@ -21,7 +21,7 @@
     font-family: 'Fredoka'; font-size: 14px; outline: none;
   }
   .word-row input:focus { border-color: var(--pink); }
-  .word-row input.arab-input { font-family: 'Fredoka', serif; text-align: right; }
+  .word-row input.arab-input { font-family: 'Fredoka', 'Noto Naskh Arabic', serif; }
   .lesson-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   .lesson-head input.lesson-name {
     font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 700; border: none;
@@ -53,13 +53,13 @@
     <a href="/kelas.html">🏫 Pengurusan Kelas</a>
     <a href="/spin.html">🎡 Spin Wheel</a>
     <a href="/hadiah.html">🎁 Hadiah</a>
-    <a href="/game-arab.html" class="active">🕹️ Game Arab</a>
+    <a href="/game-arab.html" class="active">🎮 Ilmuverse Gamebox</a>
   </div>
 </nav>
 
 <div class="container">
-  <h1 class="page-title">🕹️ Game Arab — Panel Guru</h1>
-  <p class="page-subtitle">Urus topik &amp; kosa kata untuk permainan pengesanan tangan "Cyber Sky Arabic". Perubahan di sini terus dipaparkan dalam permainan.</p>
+  <h1 class="page-title">🎮 Ilmuverse Gamebox — Panel Guru</h1>
+  <p class="page-subtitle">Urus topik &amp; kandungan kuiz untuk permainan pengesanan tangan "Ilmuverse Gamebox" — sesuai untuk sebarang subjek (Bahasa Arab, Bahasa Melayu, Pendidikan Islam, dll). Perubahan di sini terus dipaparkan dalam permainan.</p>
 
   <div style="margin: -10px 0 22px;">
     <a href="/game-arab.html" class="btn btn-purple">🎮 Buka Permainan</a>
@@ -105,8 +105,8 @@
     <div class="words-panel" style="display:none;">
       <div class="words-list"></div>
       <div class="add-word-row">
-        <input class="new-word-melayu" placeholder="Bahasa Melayu" />
-        <input class="new-word-arab arab-input" placeholder="بالعربية" dir="rtl" />
+        <input class="new-word-melayu" placeholder="Soalan / Istilah" />
+        <input class="new-word-arab arab-input" placeholder="Jawapan / Maksud" dir="auto" />
         <input class="new-word-icon" placeholder="📦" maxlength="4" style="text-align:center;" />
         <button class="add-word-btn btn btn-success btn-sm">+ Tambah</button>
       </div>
@@ -116,8 +116,8 @@
 
 <template id="wordRowTpl">
   <div class="word-row">
-    <input class="word-melayu" />
-    <input class="word-arab arab-input" dir="rtl" />
+    <input class="word-melayu" dir="auto" />
+    <input class="word-arab arab-input" dir="auto" />
     <input class="word-icon" maxlength="4" style="text-align:center;" />
     <div style="display:flex; gap:4px;">
       <button class="save-word-btn btn btn-secondary btn-sm" style="padding:6px 10px;">💾</button>
@@ -188,7 +188,7 @@ function renderLessonCard(lessonSummary) {
     const melayu = $('.new-word-melayu', card).value.trim();
     const arab = $('.new-word-arab', card).value.trim();
     const icon = $('.new-word-icon', card).value.trim() || '📦';
-    if (!melayu || !arab) return alert('Isikan Bahasa Melayu dan Bahasa Arab.');
+    if (!melayu || !arab) return alert('Isikan Soalan dan Jawapan.');
     try {
       await api(`/${lessonSummary._id}/words`, { method: 'POST', body: JSON.stringify({ melayu, arab, icon }) });
       $('.new-word-melayu', card).value = ''; $('.new-word-arab', card).value = ''; $('.new-word-icon', card).value = '';
