@@ -21,6 +21,7 @@ app.use('/api/spin-images', require('./routes/spinImages'));
 app.use('/api/reward-tiers', require('./routes/rewardTiers'));
 app.use('/api/site-settings', require('./routes/siteSettings'));
 app.use('/api/export', require('./routes/exportWord'));
+app.use('/api/game-lessons', require('./routes/gameLessons'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'OK', message: 'Server berjalan lancar! 🎉' }));
 
