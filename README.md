@@ -8,7 +8,7 @@ Sistem ganjaran interaktif untuk guru prasekolah — Leaderboard bintang + stick
 - **Leaderboard Murid** — senarai murid dengan bintang besar + tahap semasa + sticker unlock, **carian nama (scroll + kelip automatik)**, tambah/kurang bintang **serta-merta tanpa delay**
 - **Spin Wheel** — tekan pada gambar untuk spin, animasi rawak gempak + skrin penuh
 - **Hadiah** — urus poster hadiah besar & sticker untuk setiap tahap bintang
-- **🕹️ Game Arab** — permainan pengesanan tangan (hand-tracking, MediaPipe) untuk kosa kata Bahasa Arab; kandungan pelajaran (topik & senarai perkataan) boleh diedit terus di Panel Guru tanpa ubah kod
+- **🎮 Ilmuverse Gamebox** — kuiz interaktif pengesanan tangan (hand-tracking, MediaPipe) dengan **5 mod permainan** (Tembak, Padan, Isyarat Jari, Lawan Masa, Ingat); boleh guna untuk **sebarang subjek** (bukan Bahasa Arab sahaja), kandungan pelajaran (topik & senarai soalan/jawapan) boleh diedit terus di Panel Guru tanpa ubah kod
 
 ## 🛠️ Teknologi
 - Backend: Node.js + Express
@@ -91,19 +91,29 @@ git push
 2. **Spin Wheel** → pilih kelas → tekan terus pada gambar untuk spin
 3. Guna butang **Skrin Penuh** untuk paparan lebih besar
 
-## 🕹️ Cara guna Game Arab (Kosa Kata Bahasa Arab)
+## 🎮 Cara guna Ilmuverse Gamebox (Kuiz Pengesanan Tangan)
 
-Permainan pendidikan berasaskan pengesanan tangan (MediaPipe Hands) — murid
-menyasar & "menembak" drone siber yang membawa perkataan Arab yang betul
-menggunakan tapak tangan (kamera web).
+Kuiz pendidikan interaktif berasaskan pengesanan tangan (MediaPipe Hands) —
+sesuai untuk sebarang subjek (Bahasa Arab, Bahasa Melayu, Pendidikan Islam,
+dsb). Murid pilih topik, kemudian pilih salah satu daripada **5 mod
+permainan**:
 
-1. Breadcrumb **🕹️ Game Arab** → buka permainan (`/game-arab.html`). Perlukan
-   kebenaran kamera & sambungan `https://`/`localhost`.
+| Mod | Cara main |
+|---|---|
+| 🎯 **Tembak** | Sasar & "tembak" drone yang membawa jawapan betul dengan tapak tangan terbuka |
+| 🔗 **Padan** | Cubit (ibu jari + telunjuk rapat) kad soalan, tarik & sambung ke jawapan yang betul |
+| 🖐️ **Isyarat Jari** | Kuiz 4 pilihan — jawab dengan tunjuk & tahan bilangan jari (1-4) |
+| ⏱️ **Lawan Masa** | Jawab sebanyak mungkin dalam 60 saat (perkataan boleh berulang) |
+| 🧠 **Ingat** | Perkataan pada drone dipaparkan sekejap, kemudian tersembunyi — ingat kedudukannya |
+
+1. Breadcrumb **🎮 Ilmuverse Gamebox** → buka permainan (`/game-arab.html`),
+   pilih topik → pilih mod. Perlukan kebenaran kamera & sambungan
+   `https://`/`localhost`.
 2. Di dalam permainan, tekan pautan **⚙ Edit kandungan pelajaran (Panel Guru)**
    (atau terus ke `/game-arab-admin.html`) untuk:
-   - Cipta topik/set kosa kata baharu (boleh banyak topik — cth: Alatan
-     Kelas, Haiwan, Warna)
-   - Tambah / edit / padam perkataan (Bahasa Melayu + Bahasa Arab + ikon)
+   - Cipta topik/set kandungan baharu (boleh banyak topik & subjek — cth:
+     Alatan Kelas, Haiwan, Warna, Rukun Islam)
+   - Tambah / edit / padam item (Soalan/Istilah + Jawapan/Maksud + ikon)
      dalam setiap topik
    - Tiada login diperlukan buat masa ini — kongsi pautan admin hanya
      dengan guru.
@@ -111,9 +121,10 @@ menggunakan tapak tangan (kamera web).
    dengan Sistem Ganjaran BM (koleksi berasingan: `gamelessonsets`) — tiada
    setup pangkalan data baharu diperlukan.
 4. (Pilihan) Isi 16 perkataan contoh terus: `npm run seed:game`
-5. Tetapan sensitivity pengesanan tangan boleh dilaraskan dalam objek
-   `CONFIG.HAND` di bahagian atas kod JavaScript `public/game-arab.html`
-   jika pengesanan terasa terlalu/tidak cukup sensitif.
+5. Tetapan sensitivity pengesanan tangan (termasuk nisbah cubit untuk Mod
+   Padan) boleh dilaraskan dalam objek `CONFIG.HAND` / `CONFIG.GAME` di
+   bahagian atas kod JavaScript `public/game-arab.html` jika pengesanan
+   terasa terlalu/tidak cukup sensitif.
 
 ## 📁 Struktur Fail
 
@@ -127,8 +138,8 @@ project/
 ├── scripts/seedGameLessons.js
 └── public/
     ├── index.html / kelas.html / kumpulan.html / leaderboard.html / spin.html / hadiah.html
-    ├── game-arab.html        # Permainan Game Arab (hand-tracking)
-    ├── game-arab-admin.html  # Panel Guru - edit kandungan Game Arab
+    ├── game-arab.html        # Ilmuverse Gamebox - kuiz hand-tracking (5 mod)
+    ├── game-arab-admin.html  # Panel Guru - edit kandungan Ilmuverse Gamebox
     ├── css/style.css
     └── js/          # termasuk site.js (papar nama/logo laman di semua halaman)
 ```
@@ -153,7 +164,7 @@ project/
 | GET/PUT | `/api/reward-tiers/settings/poster` | Poster hadiah besar |
 | GET/PUT | `/api/site-settings` | Nama laman & logo |
 | GET | `/api/export/word` | Muat turun backup semua data (.docx) |
-| GET/POST | `/api/game-lessons` | Senarai / cipta topik pelajaran Game Arab |
+| GET/POST | `/api/game-lessons` | Senarai / cipta topik pelajaran Ilmuverse Gamebox |
 | GET/PUT/DELETE | `/api/game-lessons/:id` | Satu topik penuh / sunting / padam |
 | POST/PUT/DELETE | `/api/game-lessons/:id/words(/:wordId)` | Tambah / sunting / padam perkataan dalam topik |
 
