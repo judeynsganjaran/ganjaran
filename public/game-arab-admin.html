@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Arab — Panel Guru 🕹️</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .word-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 64px auto;
+    gap: 8px;
+    align-items: center;
+    background: #FFF7EE;
+    border-radius: 12px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+  }
+  .word-row input {
+    width: 100%; padding: 8px 10px; border-radius: 10px; border: 2px solid #eee;
+    font-family: 'Fredoka'; font-size: 14px; outline: none;
+  }
+  .word-row input:focus { border-color: var(--pink); }
+  .word-row input.arab-input { font-family: 'Fredoka', serif; text-align: right; }
+  .lesson-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .lesson-head input.lesson-name {
+    font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 700; border: none;
+    background: transparent; padding: 2px 0; width: 100%; outline: none; color: var(--dark);
+  }
+  .lesson-head input.lesson-name:focus { background: #FFF7EE; padding: 2px 8px; border-radius: 8px; }
+  .lesson-head input.lesson-desc {
+    font-size: 14px; border: none; background: transparent; padding: 2px 0; width: 100%;
+    outline: none; opacity: .75;
+  }
+  .lesson-head input.lesson-desc:focus { background: #FFF7EE; padding: 2px 8px; border-radius: 8px; opacity: 1; }
+  .lesson-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .words-panel { margin-top: 14px; border-top: 2px dashed #f0e6da; padding-top: 14px; }
+  .add-word-row { display: grid; grid-template-columns: 1fr 1fr 64px auto; gap: 8px; align-items: center; }
+  .word-count-badge {
+    background: var(--purple); color: #fff; font-size: 12px; font-weight: 700;
+    padding: 4px 12px; border-radius: 999px; align-self: center;
+  }
+  .empty-hint { text-align: center; color: #9a8a91; padding: 30px 10px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/index.html" class="brand"><span id="siteBrandEmoji">🌈</span><img id="siteBrandLogo" class="brand-logo" style="display:none;" alt="Logo"><span id="siteBrandText">Ganjaran BM</span></a>
+  <div class="breadcrumbs">
+    <a href="/leaderboard.html">🏆 Leaderboard</a>
+    <a href="/kumpulan.html">👨‍👩‍👧‍👦 Kumpulan</a>
+    <a href="/kelas.html">🏫 Pengurusan Kelas</a>
+    <a href="/spin.html">🎡 Spin Wheel</a>
+    <a href="/hadiah.html">🎁 Hadiah</a>
+    <a href="/game-arab.html" class="active">🕹️ Game Arab</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1 class="page-title">🕹️ Game Arab — Panel Guru</h1>
+  <p class="page-subtitle">Urus topik &amp; kosa kata untuk permainan pengesanan tangan "Cyber Sky Arabic". Perubahan di sini terus dipaparkan dalam permainan.</p>
+
+  <div style="margin: -10px 0 22px;">
+    <a href="/game-arab.html" class="btn btn-purple">🎮 Buka Permainan</a>
+  </div>
+
+  <div id="dbStatus" class="card" style="display:none; border: 2px solid #FF6B6B;"></div>
+
+  <!-- Cipta topik baharu -->
+  <div class="card">
+    <h2 style="margin-top:0;">➕ Topik Pelajaran Baharu</h2>
+    <div class="grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Nama Topik</label>
+        <input id="newLessonName" type="text" placeholder="cth: Haiwan Ternakan">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Penerangan (pilihan)</label>
+        <input id="newLessonDesc" type="text" placeholder="Penerangan ringkas">
+      </div>
+    </div>
+    <button id="createLessonBtn" class="btn btn-primary" style="margin-top:14px;">CIPTA TOPIK</button>
+  </div>
+
+  <div id="lessonsContainer"></div>
+  <div id="emptyState" class="empty-hint" style="display:none;">Tiada topik lagi. Cipta satu di atas untuk mula. 🌱</div>
+</div>
+
+<template id="lessonCardTpl">
+  <div class="card lesson-card">
+    <div class="lesson-head">
+      <div style="flex:1; min-width:200px;">
+        <input class="lesson-name" />
+        <input class="lesson-desc" />
+      </div>
+      <div class="lesson-actions">
+        <span class="word-count-badge"></span>
+        <button class="save-lesson-btn btn btn-secondary btn-sm">💾 Simpan</button>
+        <button class="toggle-words-btn btn btn-outline btn-sm">📖 Perkataan</button>
+        <button class="delete-lesson-btn btn btn-danger btn-sm">🗑️ Padam</button>
+      </div>
+    </div>
+
+    <div class="words-panel" style="display:none;">
+      <div class="words-list"></div>
+      <div class="add-word-row">
+        <input class="new-word-melayu" placeholder="Bahasa Melayu" />
+        <input class="new-word-arab arab-input" placeholder="بالعربية" dir="rtl" />
+        <input class="new-word-icon" placeholder="📦" maxlength="4" style="text-align:center;" />
+        <button class="add-word-btn btn btn-success btn-sm">+ Tambah</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="wordRowTpl">
+  <div class="word-row">
+    <input class="word-melayu" />
+    <input class="word-arab arab-input" dir="rtl" />
+    <input class="word-icon" maxlength="4" style="text-align:center;" />
+    <div style="display:flex; gap:4px;">
+      <button class="save-word-btn btn btn-secondary btn-sm" style="padding:6px 10px;">💾</button>
+      <button class="delete-word-btn btn btn-danger btn-sm" style="padding:6px 10px;">✕</button>
+    </div>
+  </div>
+</template>
+
+<script>
+const API = '/api/game-lessons';
+const $ = (sel, root = document) => root.querySelector(sel);
+
+async function api(path, opts) {
+  const res = await fetch(API + path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Ralat tidak diketahui');
+  return data;
+}
+
+async function loadAll() {
+  const container = $('#lessonsContainer');
+  const status = $('#dbStatus');
+  try {
+    const lessons = await api('');
+    status.style.display = 'none';
+    container.innerHTML = '';
+    $('#emptyState').style.display = lessons.length ? 'none' : 'block';
+    lessons.forEach((l) => container.appendChild(renderLessonCard(l)));
+  } catch (err) {
+    status.innerHTML = '<strong>⚠️ Tidak dapat sambung ke MongoDB.</strong><br>Semak MONGODB_URI dalam .env / Render — sepatutnya sudah ada sebab dikongsi dengan Sistem Ganjaran BM.';
+    status.style.display = 'block';
+  }
+}
+
+function renderLessonCard(lessonSummary) {
+  const tpl = $('#lessonCardTpl').content.cloneNode(true);
+  const card = tpl.querySelector('.lesson-card');
+  card.dataset.id = lessonSummary._id;
+  $('.lesson-name', card).value = lessonSummary.name;
+  $('.lesson-desc', card).value = lessonSummary.description || '';
+  $('.word-count-badge', card).textContent = `${lessonSummary.wordCount} perkataan`;
+
+  $('.save-lesson-btn', card).addEventListener('click', async () => {
+    const name = $('.lesson-name', card).value.trim();
+    const description = $('.lesson-desc', card).value.trim();
+    if (!name) return alert('Nama topik tidak boleh kosong.');
+    try { await api(`/${lessonSummary._id}`, { method: 'PUT', body: JSON.stringify({ name, description }) }); flash(card); }
+    catch (err) { alert(err.message); }
+  });
+
+  $('.delete-lesson-btn', card).addEventListener('click', async () => {
+    if (!confirm(`Padam topik "${lessonSummary.name}" beserta semua perkataannya?`)) return;
+    try { await api(`/${lessonSummary._id}`, { method: 'DELETE' }); card.remove(); $('#emptyState').style.display = $('#lessonsContainer').children.length ? 'none' : 'block'; }
+    catch (err) { alert(err.message); }
+  });
+
+  const wordsPanel = $('.words-panel', card);
+  const toggleBtn = $('.toggle-words-btn', card);
+  let loaded = false;
+  toggleBtn.addEventListener('click', async () => {
+    const showing = wordsPanel.style.display !== 'none';
+    wordsPanel.style.display = showing ? 'none' : 'block';
+    toggleBtn.textContent = showing ? '📖 Perkataan' : '📖 Tutup';
+    if (!showing && !loaded) { loaded = true; await refreshWords(lessonSummary._id, wordsPanel, card); }
+  });
+
+  $('.add-word-btn', card).addEventListener('click', async () => {
+    const melayu = $('.new-word-melayu', card).value.trim();
+    const arab = $('.new-word-arab', card).value.trim();
+    const icon = $('.new-word-icon', card).value.trim() || '📦';
+    if (!melayu || !arab) return alert('Isikan Bahasa Melayu dan Bahasa Arab.');
+    try {
+      await api(`/${lessonSummary._id}/words`, { method: 'POST', body: JSON.stringify({ melayu, arab, icon }) });
+      $('.new-word-melayu', card).value = ''; $('.new-word-arab', card).value = ''; $('.new-word-icon', card).value = '';
+      await refreshWords(lessonSummary._id, wordsPanel, card);
+    } catch (err) { alert(err.message); }
+  });
+
+  return card;
+}
+
+async function refreshWords(lessonId, wordsPanel, card) {
+  const list = $('.words-list', wordsPanel);
+  list.innerHTML = '<div style="opacity:.6; font-size:14px;">Memuatkan...</div>';
+  try {
+    const lesson = await api(`/${lessonId}`);
+    list.innerHTML = '';
+    lesson.words.forEach((w) => list.appendChild(renderWordRow(lessonId, w, wordsPanel, card)));
+    $('.word-count-badge', card).textContent = `${lesson.words.length} perkataan`;
+  } catch (err) {
+    list.innerHTML = `<div style="color:#FF6B6B; font-size:14px;">${err.message}</div>`;
+  }
+}
+
+function renderWordRow(lessonId, word, wordsPanel, card) {
+  const tpl = $('#wordRowTpl').content.cloneNode(true);
+  const row = tpl.querySelector('.word-row');
+  $('.word-melayu', row).value = word.melayu;
+  $('.word-arab', row).value = word.arab;
+  $('.word-icon', row).value = word.icon || '';
+
+  $('.save-word-btn', row).addEventListener('click', async () => {
+    const melayu = $('.word-melayu', row).value.trim();
+    const arab = $('.word-arab', row).value.trim();
+    const icon = $('.word-icon', row).value.trim() || '📦';
+    try { await api(`/${lessonId}/words/${word._id}`, { method: 'PUT', body: JSON.stringify({ melayu, arab, icon }) }); flash(row); }
+    catch (err) { alert(err.message); }
+  });
+
+  $('.delete-word-btn', row).addEventListener('click', async () => {
+    if (!confirm(`Padam perkataan "${word.melayu}"?`)) return;
+    try { await api(`/${lessonId}/words/${word._id}`, { method: 'DELETE' }); await refreshWords(lessonId, wordsPanel, card); }
+    catch (err) { alert(err.message); }
+  });
+
+  return row;
+}
+
+function flash(el) {
+  el.style.transition = 'background-color .3s';
+  const prev = el.style.backgroundColor;
+  el.style.backgroundColor = '#D8FCE4';
+  setTimeout(() => { el.style.backgroundColor = prev; }, 500);
+}
+
+$('#createLessonBtn').addEventListener('click', async () => {
+  const name = $('#newLessonName').value.trim();
+  const description = $('#newLessonDesc').value.trim();
+  if (!name) return alert('Sila isikan nama topik.');
+  try {
+    await api('', { method: 'POST', body: JSON.stringify({ name, description }) });
+    $('#newLessonName').value = ''; $('#newLessonDesc').value = '';
+    await loadAll();
+  } catch (err) { alert(err.message); }
+});
+
+loadAll();
+</script>
+<script src="/js/site.js"></script>
+</body>
+</html>

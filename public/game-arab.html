@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<title>Game Arab — Cyber Sky Arabic 🕹️</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Rajdhani:wght@300;400;500;600;700&family=Kanit:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400..700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --cyber-cyan:#22e3f5; --cyber-blue:#3b82f6; --violet:#8b5cf6;
+    --titanium:#94a3b8; --dark-slate:#0b1220; --amber:#f59e0b;
+  }
+  html,body{ margin:0; padding:0; background:#04060c; overflow:hidden; height:100%; font-family:'Rajdhani',sans-serif; }
+  .font-orbitron{ font-family:'Orbitron',sans-serif; }
+  .font-kanit{ font-family:'Kanit',sans-serif; }
+  .font-prompt{ font-family:'Prompt',sans-serif; }
+  .font-arabic{ font-family:'Noto Naskh Arabic','Traditional Arabic',serif; }
+
+  #stage{ position:fixed; inset:0; width:100%; height:100dvh; }
+  video#camera{ position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+  canvas#scene{ position:absolute; inset:0; width:100%; height:100%; }
+
+  .glass{
+    background:linear-gradient(135deg, rgba(30,41,59,.55), rgba(15,23,42,.75));
+    border:1px solid rgba(34,227,245,.35);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 25px rgba(34,227,245,.15), inset 0 0 30px rgba(139,92,246,.08);
+  }
+  .glow-cyan{ text-shadow: 0 0 8px var(--cyber-cyan), 0 0 18px rgba(34,227,245,.6); }
+  .glow-violet{ text-shadow: 0 0 8px var(--violet), 0 0 18px rgba(139,92,246,.6); }
+  .glow-amber{ text-shadow: 0 0 8px var(--amber), 0 0 18px rgba(245,158,11,.6); }
+  .btn-cyber{
+    font-family:'Orbitron',sans-serif; letter-spacing:.08em;
+    background:linear-gradient(135deg, rgba(34,227,245,.25), rgba(139,92,246,.25));
+    border:1px solid rgba(34,227,245,.6); color:#e6fbff;
+    box-shadow:0 0 18px rgba(34,227,245,.35);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-cyber:hover{ transform:translateY(-2px) scale(1.02); box-shadow:0 0 28px rgba(34,227,245,.6); }
+  .btn-cyber:disabled{ opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  .modal-overlay{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(ellipse at center, rgba(15,23,42,.85), rgba(2,4,10,.97));
+    z-index:50; padding:16px;
+  }
+  .hidden{ display:none !important; }
+
+  .node-dot{ width:10px; height:10px; border-radius:9999px; background:rgba(148,163,184,.35); box-shadow:none; }
+  .node-dot.done{ background:var(--cyber-cyan); box-shadow:0 0 10px var(--cyber-cyan); }
+
+  @keyframes floatY{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-6px);} }
+  .float-anim{ animation: floatY 2.4s ease-in-out infinite; }
+
+  .star{ font-size:2.4rem; opacity:.15; transform:scale(.6); transition:all .35s cubic-bezier(.34,1.56,.64,1); display:inline-block; }
+  .star.lit{ opacity:1; transform:scale(1); color:var(--amber); text-shadow:0 0 16px var(--amber); }
+
+  #loadingBar{ transition: width .25s ease; }
+  ::-webkit-scrollbar{ width:8px; } ::-webkit-scrollbar-thumb{ background:rgba(34,227,245,.4); border-radius:4px; }
+</style>
+</head>
+<body class="text-slate-100">
+
+<div id="stage">
+  <video id="camera" autoplay playsinline muted></video>
+  <canvas id="scene"></canvas>
+
+  <!-- ===== HUD ===== -->
+  <div id="hud" class="hidden pointer-events-none">
+    <!-- Top Left: Mission label -->
+    <div class="fixed top-3 left-3 glass rounded-xl px-4 py-2">
+      <div class="font-orbitron text-[10px] tracking-widest text-cyan-300/80">MISSION</div>
+      <div id="hudLessonName" class="font-orbitron text-sm glow-cyan">ARABIC VOCABULARY</div>
+    </div>
+
+    <!-- Top Center: instruction banner -->
+    <div class="fixed top-3 left-1/2 -translate-x-1/2 glass rounded-xl px-6 py-2 text-center min-w-[220px]">
+      <div id="bannerLabel" class="font-orbitron text-[10px] tracking-widest text-violet-300/80">SASARAN</div>
+      <div id="bannerTarget" class="font-orbitron text-lg md:text-2xl glow-violet font-arabic">—</div>
+    </div>
+
+    <!-- Top Right: score / combo -->
+    <div class="fixed top-3 right-3 glass rounded-xl px-4 py-2 text-right">
+      <div class="font-orbitron text-[10px] tracking-widest text-cyan-300/80">TACTICAL SCORE</div>
+      <div id="hudScore" class="font-orbitron text-xl glow-cyan">0</div>
+      <div class="font-orbitron text-[10px] tracking-widest text-amber-300/80 mt-1">COMBO</div>
+      <div id="hudCombo" class="font-orbitron text-lg glow-amber">×1</div>
+    </div>
+
+    <!-- Bottom: progress + AI NOVA -->
+    <div class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[min(640px,94vw)] flex flex-col items-center gap-2">
+      <div class="glass rounded-xl px-4 py-1.5 w-full text-center">
+        <div class="font-orbitron text-[10px] tracking-widest text-cyan-300/80" id="progressLabel">ARABIC MISSION 0/16</div>
+        <div id="progressDots" class="flex flex-wrap gap-1.5 justify-center mt-1"></div>
+      </div>
+      <div class="glass rounded-xl px-4 py-2 w-full">
+        <div class="font-orbitron text-[10px] tracking-widest text-violet-300/80">A.I. NOVA</div>
+        <div id="novaText" class="font-kanit text-sm md:text-base text-cyan-100/90">Bersedia...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== START MODAL ===== -->
+  <div id="startModal" class="modal-overlay">
+    <div class="glass rounded-2xl p-6 md:p-8 max-w-lg w-full">
+      <div class="text-center mb-4">
+        <div class="font-arabic text-3xl md:text-4xl glow-cyan mb-1" dir="rtl">درع السماء السيبراني</div>
+        <div class="font-orbitron text-sm tracking-widest text-violet-300">MISI KOSA KATA BAHASA ARAB</div>
+      </div>
+      <p class="font-kanit text-center text-slate-300 text-sm mb-4">Kenali perkataan Bahasa Arab dan musnahkan drone yang betul menggunakan tapak tangan anda.</p>
+
+      <div class="grid grid-cols-2 gap-2 text-center text-xs font-kanit mb-5">
+        <div class="glass rounded-lg py-2">✋<br/>1. Angkat &amp; buka tapak tangan</div>
+        <div class="glass rounded-lg py-2">🎯<br/>2. Halakan ke drone</div>
+        <div class="glass rounded-lg py-2">⚡<br/>3. Tunggu sasaran dikunci</div>
+        <div class="glass rounded-lg py-2">💥<br/>4. Tembak!</div>
+      </div>
+
+      <label class="font-orbitron text-[11px] tracking-widest text-cyan-300/80 block mb-1">PILIH TOPIK PELAJARAN</label>
+      <select id="lessonSelect" class="w-full mb-2 bg-slate-900/70 border border-cyan-500/40 rounded-lg px-3 py-2 font-kanit text-sm"></select>
+      <div id="lessonStatus" class="text-xs font-kanit text-slate-400 mb-4 min-h-[1.2em]">Memuatkan senarai topik...</div>
+
+      <button id="startBtn" class="btn-cyber w-full rounded-lg py-3 font-orbitron tracking-widest" disabled>MULA MISI</button>
+      <div class="text-center mt-3 flex items-center justify-center gap-4">
+        <a href="/index.html" class="text-[11px] font-kanit text-slate-400 hover:text-cyan-300 underline">← Ganjaran BM</a>
+        <a href="/game-arab-admin.html" class="text-[11px] font-kanit text-slate-400 hover:text-cyan-300 underline">⚙ Edit kandungan pelajaran (Panel Guru)</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LOADING MODAL ===== -->
+  <div id="loadingModal" class="modal-overlay hidden">
+    <div class="glass rounded-2xl p-8 max-w-sm w-full text-center">
+      <div class="font-orbitron text-sm tracking-widest text-cyan-300 mb-3">CONNECTING TO CYBER VISION...</div>
+      <div id="loadingMsg" class="font-kanit text-xs text-slate-300 mb-4">Mengaktifkan sistem pengesanan tangan...</div>
+      <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div id="loadingBar" class="h-full bg-gradient-to-r from-cyan-400 to-violet-500" style="width:5%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CAMERA ERROR MODAL ===== -->
+  <div id="cameraErrorModal" class="modal-overlay hidden">
+    <div class="glass rounded-2xl p-8 max-w-sm w-full text-center border-red-500/50">
+      <div class="font-orbitron text-lg text-red-400 mb-2">AKSES KAMERA DITOLAK</div>
+      <p class="font-kanit text-sm text-slate-300 mb-5">Permainan ini memerlukan kamera untuk mengesan pergerakan tangan. Sila benarkan akses kamera pada pelayar anda.</p>
+      <button id="retryCameraBtn" class="btn-cyber rounded-lg px-5 py-2 font-orbitron">CUBA SEMULA</button>
+    </div>
+  </div>
+
+  <!-- ===== VICTORY MODAL ===== -->
+  <div id="victoryModal" class="modal-overlay hidden">
+    <div class="glass rounded-2xl p-6 md:p-8 max-w-md w-full text-center">
+      <div class="font-orbitron text-xl md:text-2xl glow-cyan mb-1">MISSION COMPLETE</div>
+      <div class="font-arabic text-2xl glow-amber mb-3">مُبَارَك!</div>
+      <div id="starRow" class="mb-4"><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+      <div class="grid grid-cols-2 gap-3 text-left font-kanit text-sm mb-5">
+        <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Skor Akhir</div><div id="statScore" class="font-orbitron text-lg glow-cyan">0</div></div>
+        <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Combo Tertinggi</div><div id="statCombo" class="font-orbitron text-lg glow-amber">×1</div></div>
+        <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Tembakan Tersasar</div><div id="statMiss" class="font-orbitron text-lg">0</div></div>
+        <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Perkataan Dikuasai</div><div id="statWords" class="font-orbitron text-lg">0/0</div></div>
+      </div>
+      <div class="flex flex-col gap-2">
+        <button id="replayBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm">🔄 MAIN SEMULA</button>
+        <button id="reviewBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm">📚 ULANG KAJI KOSA KATA</button>
+        <button id="menuBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm">🏠 MENU UTAMA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REVIEW MODAL ===== -->
+  <div id="reviewModal" class="modal-overlay hidden">
+    <div class="glass rounded-2xl p-6 max-w-lg w-full max-h-[85vh] flex flex-col">
+      <div class="font-orbitron text-lg glow-cyan text-center mb-3">KOSA KATA YANG TELAH DIPELAJARI</div>
+      <div id="reviewList" class="overflow-y-auto grid grid-cols-1 gap-2 pr-1"></div>
+      <button id="reviewCloseBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm mt-4">TUTUP</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+
+<script>
+/* =========================================================================
+   CYBER SKY ARABIC — Permainan pengesanan tangan untuk kosa kata Arab
+   Kandungan pelajaran (senarai perkataan) diambil dari MongoDB melalui API.
+   ========================================================================= */
+
+// ------------------------------------------------------------------
+// KONFIGURASI (laraskan di sini jika perlu — termasuk "sensitivity")
+// ------------------------------------------------------------------
+const CONFIG = {
+  API_BASE: '/api/game-lessons',
+  HAND: {
+    minDetectionConfidence: 0.6,   // makin tinggi = kurang "salah kesan", tapi kurang sensitif
+    minTrackingConfidence: 0.5,
+    modelComplexity: 1,
+    maxNumHands: 1,
+    smoothing: 0.30,               // 0-1 : makin rendah = reticle lebih licin (kurang gegar), makin tinggi = lebih responsif/pantas
+    openPalmMinFingers: 3,         // bilangan jari terbuka minimum untuk dikira "tapak tangan terbuka"
+    aimHitPadding: 48,             // px toleransi radius sekitar drone (lagi besar = lagi mudah untuk kanak-kanak menyasar)
+    lostGraceMs: 220,              // tempoh toleransi bila reticle tersasar sekejap drone sebelum reset kunci
+  },
+  GAME: {
+    lockChargeMs: 750,
+    dronesPerRound: 4,
+    feedbackDelayMs: 1900,
+    maxCombo: 5,
+    droneRadius: 78,
+  },
+};
+
+// ------------------------------------------------------------------
+// STATE
+// ------------------------------------------------------------------
+const els = {
+  video: document.getElementById('camera'),
+  canvas: document.getElementById('scene'),
+  hud: document.getElementById('hud'),
+  startModal: document.getElementById('startModal'),
+  loadingModal: document.getElementById('loadingModal'),
+  cameraErrorModal: document.getElementById('cameraErrorModal'),
+  victoryModal: document.getElementById('victoryModal'),
+  reviewModal: document.getElementById('reviewModal'),
+  lessonSelect: document.getElementById('lessonSelect'),
+  lessonStatus: document.getElementById('lessonStatus'),
+  startBtn: document.getElementById('startBtn'),
+  retryCameraBtn: document.getElementById('retryCameraBtn'),
+  loadingMsg: document.getElementById('loadingMsg'),
+  loadingBar: document.getElementById('loadingBar'),
+  hudScore: document.getElementById('hudScore'),
+  hudCombo: document.getElementById('hudCombo'),
+  hudLessonName: document.getElementById('hudLessonName'),
+  bannerLabel: document.getElementById('bannerLabel'),
+  bannerTarget: document.getElementById('bannerTarget'),
+  progressLabel: document.getElementById('progressLabel'),
+  progressDots: document.getElementById('progressDots'),
+  novaText: document.getElementById('novaText'),
+  replayBtn: document.getElementById('replayBtn'),
+  reviewBtn: document.getElementById('reviewBtn'),
+  menuBtn: document.getElementById('menuBtn'),
+  reviewCloseBtn: document.getElementById('reviewCloseBtn'),
+  reviewList: document.getElementById('reviewList'),
+  starRow: document.getElementById('starRow'),
+  statScore: document.getElementById('statScore'),
+  statCombo: document.getElementById('statCombo'),
+  statMiss: document.getElementById('statMiss'),
+  statWords: document.getElementById('statWords'),
+};
+
+const ctx = els.canvas.getContext('2d');
+let W = 0, H = 0;
+
+let currentLesson = null;      // { _id, name, description, words:[{_id,melayu,arab,icon}] }
+let masteredIds = new Set();
+let drones = [];
+let particles = [];
+let score = 0, combo = 1, maxComboReached = 1, missedShots = 0, correctHits = 0;
+let reticle = { x: -100, y: -100, visible: false };
+let rawPalm = null;
+let openPalm = false;
+let lockTarget = null;         // drone object being locked
+let lockStart = 0;
+let lostSince = 0;
+let roundBusy = false;         // true while resolving a shot / showing feedback
+let shakeFrames = 0;
+let beamFx = null;             // {from:{x,y}, to:{x,y}, life}
+let missionType = 'A';         // 'A' = cari perkataan Arab, 'B' = kenal maksud
+let mpCamera = null;
+let handsModel = null;
+let videoMetrics = { vw: 1, vh: 1, scale: 1, sw: 1, sh: 1, sx: 0, sy: 0 };
+let gameActive = false;
+
+// ------------------------------------------------------------------
+// AUDIO — Procedural Sound Synthesizer (Web Audio API, tiada fail .mp3/.wav)
+// ------------------------------------------------------------------
+let actx = null;
+function audio() { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); return actx; }
+
+function tone(freq, dur, type = 'sine', peak = 0.18, glideTo = null) {
+  const ac = audio();
+  const osc = ac.createOscillator();
+  const gain = ac.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, ac.currentTime);
+  if (glideTo) osc.frequency.exponentialRampToValueAtTime(glideTo, ac.currentTime + dur);
+  gain.gain.setValueAtTime(0.0001, ac.currentTime);
+  gain.gain.exponentialRampToValueAtTime(peak, ac.currentTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);
+  osc.connect(gain).connect(ac.destination);
+  osc.start(); osc.stop(ac.currentTime + dur + 0.02);
+}
+function noiseBurst(dur, filterFreq = 900, peak = 0.35) {
+  const ac = audio();
+  const bufferSize = Math.floor(ac.sampleRate * dur);
+  const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+  const src = ac.createBufferSource(); src.buffer = buffer;
+  const filt = ac.createBiquadFilter(); filt.type = 'bandpass'; filt.frequency.value = filterFreq;
+  const gain = ac.createGain(); gain.gain.setValueAtTime(peak, ac.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);
+  src.connect(filt).connect(gain).connect(ac.destination);
+  src.start();
+}
+const SFX = {
+  targetLock: () => tone(880, 0.09, 'triangle', 0.15),
+  chargeRamp: () => tone(220, CONFIG.GAME.lockChargeMs / 1000, 'sawtooth', 0.06, 900),
+  fire: () => tone(1200, 0.18, 'square', 0.16, 200),
+  explosion: () => { noiseBurst(0.35, 500, 0.4); tone(120, 0.3, 'sine', 0.2, 40); },
+  deflect: () => { tone(160, 0.2, 'sawtooth', 0.2, 90); },
+  victory: () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.22, 'triangle', 0.15), i * 90)); },
+  error: () => tone(200, 0.15, 'square', 0.15),
+  missionComplete: () => { [392, 523, 659, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, 0.3, 'triangle', 0.14), i * 110)); },
+};
+
+// ------------------------------------------------------------------
+// UTIL
+// ------------------------------------------------------------------
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const dist = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
+
+function setNova(text) { els.novaText.textContent = text; }
+
+function resizeCanvas() {
+  W = window.innerWidth; H = window.innerHeight;
+  const dpr = window.devicePixelRatio || 1;
+  els.canvas.width = W * dpr; els.canvas.height = H * dpr;
+  els.canvas.style.width = W + 'px'; els.canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resizeCanvas);
+
+// ------------------------------------------------------------------
+// API — muat & urus kandungan pelajaran dari MongoDB (boleh edit di /game-arab-admin.html)
+// ------------------------------------------------------------------
+async function loadLessonList() {
+  try {
+    const res = await fetch(CONFIG.API_BASE);
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    const lessons = await res.json();
+    els.lessonSelect.innerHTML = '';
+    if (!lessons.length) {
+      els.lessonStatus.textContent = 'Tiada topik lagi. Sila tambah di Panel Guru (/game-arab-admin.html) dahulu.';
+      els.startBtn.disabled = true;
+      return;
+    }
+    lessons.forEach((l) => {
+      const opt = document.createElement('option');
+      opt.value = l._id;
+      opt.textContent = `${l.name} (${l.wordCount} perkataan)`;
+      if (l.wordCount === 0) opt.disabled = true;
+      els.lessonSelect.appendChild(opt);
+    });
+    els.lessonStatus.textContent = 'Pilih topik dan tekan MULA MISI.';
+    els.startBtn.disabled = false;
+  } catch (err) {
+    els.lessonStatus.textContent = 'Gagal sambung ke pangkalan data. Semak server / MongoDB Atlas (lihat README).';
+    els.startBtn.disabled = true;
+    console.error(err);
+  }
+}
+
+async function loadLessonDetail(id) {
+  const res = await fetch(`${CONFIG.API_BASE}/${id}`);
+  if (!res.ok) throw new Error('Gagal muat set pelajaran.');
+  return res.json();
+}
+
+// ------------------------------------------------------------------
+// MEDIAPIPE HANDS — pengesanan tangan
+// ------------------------------------------------------------------
+function fingerExtended(lm, tipIdx, pipIdx) {
+  const wrist = lm[0];
+  const dTip = dist(wrist.x, wrist.y, lm[tipIdx].x, lm[tipIdx].y);
+  const dPip = dist(wrist.x, wrist.y, lm[pipIdx].x, lm[pipIdx].y);
+  return dTip > dPip * 1.08;
+}
+
+function onHandsResults(results) {
+  updateVideoMetrics();
+  if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+    const lm = results.multiHandLandmarks[0];
+    const pairs = [[8, 6], [12, 10], [16, 14], [20, 18]];
+    const extendedCount = pairs.reduce((n, [t, p]) => n + (fingerExtended(lm, t, p) ? 1 : 0), 0);
+    openPalm = extendedCount >= CONFIG.HAND.openPalmMinFingers;
+
+    const idxs = [0, 5, 9, 13, 17];
+    let cx = 0, cy = 0;
+    idxs.forEach((i) => { cx += lm[i].x; cy += lm[i].y; });
+    cx /= idxs.length; cy /= idxs.length;
+
+    rawPalm = landmarkToScreen({ x: cx, y: cy });
+    rawPalm.landmarks = lm;
+    reticle.visible = true;
+  } else {
+    openPalm = false;
+    reticle.visible = false;
+    rawPalm = null;
+  }
+}
+
+function updateVideoMetrics() {
+  const vw = els.video.videoWidth || W, vh = els.video.videoHeight || H;
+  const scale = Math.max(W / vw, H / vh);
+  const sw = W / scale, sh = H / scale;
+  videoMetrics = { vw, vh, scale, sw, sh, sx: (vw - sw) / 2, sy: (vh - sh) / 2 };
+}
+function landmarkToScreen(lm) {
+  const m = videoMetrics;
+  const vx = lm.x * m.vw, vy = lm.y * m.vh;
+  const ux = (vx - m.sx) / m.sw * W;
+  const uy = (vy - m.sy) / m.sh * H;
+  return { x: W - ux, y: uy };
+}
+
+async function initHandsAndCamera() {
+  handsModel = new Hands({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+  handsModel.setOptions({
+    maxNumHands: CONFIG.HAND.maxNumHands,
+    modelComplexity: CONFIG.HAND.modelComplexity,
+    minDetectionConfidence: CONFIG.HAND.minDetectionConfidence,
+    minTrackingConfidence: CONFIG.HAND.minTrackingConfidence,
+  });
+  handsModel.onResults(onHandsResults);
+
+  mpCamera = new Camera(els.video, {
+    onFrame: async () => { await handsModel.send({ image: els.video }); },
+    width: 640, height: 480,
+  });
+  await mpCamera.start();
+}
+
+function stopCamera() {
+  try { if (mpCamera) mpCamera.stop(); } catch (e) {}
+  const stream = els.video.srcObject;
+  if (stream) stream.getTracks().forEach((t) => t.stop());
+  els.video.srcObject = null;
+}
+
+// ------------------------------------------------------------------
+// RONDE PERMAINAN
+// ------------------------------------------------------------------
+function remainingWords() {
+  return currentLesson.words.filter((w) => !masteredIds.has(w._id));
+}
+
+function pickRoundWords() {
+  const remain = remainingWords();
+  const targetWord = remain[Math.floor(Math.random() * remain.length)];
+  const pool = currentLesson.words.filter((w) => w._id !== targetWord._id);
+  const decoyCount = Math.min(CONFIG.GAME.dronesPerRound - 1, pool.length);
+  const decoys = [...pool].sort(() => Math.random() - 0.5).slice(0, decoyCount);
+  const all = [...decoys, targetWord].sort(() => Math.random() - 0.5);
+  return { targetWord, all };
+}
+
+function layoutDrones(list, target) {
+  drones = [];
+  const n = list.length;
+  const marginX = W * 0.12;
+  const usableW = W - marginX * 2;
+  missionType = Math.random() < 0.5 ? 'A' : 'B';
+
+  list.forEach((w, i) => {
+    const slotW = usableW / n;
+    const x = marginX + slotW * i + slotW / 2 + rand(-slotW * 0.15, slotW * 0.15);
+    const y = rand(H * 0.20, H * 0.5);
+    drones.push({
+      word: w,
+      correct: w._id === target._id,
+      x, y, baseY: y,
+      vx: rand(-14, 14),
+      bobPhase: rand(0, Math.PI * 2),
+      radius: CONFIG.GAME.droneRadius,
+      spawnT: performance.now(),
+    });
+  });
+
+  if (missionType === 'A') {
+    els.bannerLabel.textContent = 'SASARAN';
+    els.bannerTarget.textContent = target.melayu.toUpperCase();
+    els.bannerTarget.classList.remove('font-arabic'); els.bannerTarget.setAttribute('dir', 'ltr');
+    setNova(`SASARAN: ${target.melayu.toUpperCase()}. Cari drone dengan perkataan Arab yang betul.`);
+  } else {
+    els.bannerLabel.textContent = 'APAKAH MAKSUD PERKATAAN INI?';
+    els.bannerTarget.textContent = target.arab;
+    els.bannerTarget.classList.add('font-arabic'); els.bannerTarget.setAttribute('dir', 'rtl');
+    setNova('Apakah maksud perkataan ini? Cari drone dengan maksud yang betul.');
+  }
+}
+
+function updateHUD() {
+  els.hudScore.textContent = score;
+  els.hudCombo.textContent = '×' + combo;
+  const total = currentLesson.words.length;
+  const done = masteredIds.size;
+  els.progressLabel.textContent = `ARABIC MISSION ${done}/${total}`;
+  els.progressDots.innerHTML = '';
+  currentLesson.words.forEach((w) => {
+    const dot = document.createElement('span');
+    dot.className = 'node-dot' + (masteredIds.has(w._id) ? ' done' : '');
+    els.progressDots.appendChild(dot);
+  });
+}
+
+function nextRound() {
+  roundBusy = false;
+  lockTarget = null;
+  const { targetWord, all } = pickRoundWords();
+  layoutDrones(all, targetWord);
+  updateHUD();
+}
+
+function startMissionLoop() {
+  score = 0; combo = 1; maxComboReached = 1; missedShots = 0; correctHits = 0;
+  masteredIds = new Set();
+  updateHUD();
+  nextRound();
+}
+
+function resolveShot(hitDrone) {
+  roundBusy = true;
+  lockTarget = null;
+  if (hitDrone.correct) {
+    correctHits++;
+    SFX.explosion();
+    spawnExplosion(hitDrone.x, hitDrone.y, '#22e3f5');
+    score += 100 * combo;
+    combo = Math.min(CONFIG.GAME.maxCombo, combo + 1);
+    maxComboReached = Math.max(maxComboReached, combo);
+    masteredIds.add(hitDrone.word._id);
+    setNova(`Bagus! ${hitDrone.word.arab} = ${hitDrone.word.melayu.toUpperCase()}`);
+    els.bannerLabel.textContent = 'BETUL!';
+  } else {
+    missedShots++;
+    SFX.deflect();
+    spawnShield(hitDrone.x, hitDrone.y);
+    shakeFrames = 14;
+    combo = 1;
+    const correctDrone = drones.find((d) => d.correct);
+    setNova(`Cuba lagi. Sasaran yang betul ialah ${correctDrone.word.arab} = ${correctDrone.word.melayu}.`);
+    els.bannerLabel.textContent = 'BUKAN SASARAN';
+  }
+  updateHUD();
+  drones.forEach((d) => { if (d !== hitDrone) d.fading = true; });
+  hitDrone.hit = true;
+
+  setTimeout(() => {
+    drones = [];
+    if (remainingWords().length === 0) {
+      showVictory();
+    } else {
+      nextRound();
+    }
+  }, CONFIG.GAME.feedbackDelayMs);
+}
+
+function fireAtDrone(drone) {
+  if (roundBusy) return;
+  roundBusy = true; // sekat tembakan berganda semasa peluru masih dalam perjalanan
+  SFX.fire();
+  beamFx = { from: { x: W / 2, y: H - 40 }, to: { x: drone.x, y: drone.y }, life: 14 };
+  setTimeout(() => resolveShot(drone), 160);
+}
+
+// ------------------------------------------------------------------
+// PARTIKEL & KESAN VISUAL
+// ------------------------------------------------------------------
+function spawnExplosion(x, y, color) {
+  for (let i = 0; i < 28; i++) {
+    const a = rand(0, Math.PI * 2), sp = rand(60, 260);
+    particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, maxLife: rand(0.5, 0.9), color, size: rand(2, 5), type: 'spark' });
+  }
+}
+function spawnShield(x, y) {
+  particles.push({ x, y, life: 1, maxLife: 0.5, type: 'shield', color: '#ef4444', size: CONFIG.GAME.droneRadius });
+}
+function updateParticles(dt) {
+  particles.forEach((p) => {
+    if (p.type === 'spark') { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 220 * dt; p.life -= dt / p.maxLife; }
+    else { p.life -= dt / p.maxLife; }
+  });
+  particles = particles.filter((p) => p.life > 0);
+}
+function drawParticles() {
+  particles.forEach((p) => {
+    ctx.save(); ctx.globalAlpha = clamp(p.life, 0, 1);
+    if (p.type === 'spark') {
+      ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 7); ctx.fill();
+    } else if (p.type === 'shield') {
+      ctx.strokeStyle = p.color; ctx.lineWidth = 4; ctx.shadowColor = p.color; ctx.shadowBlur = 20;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (1.3 - p.life * 0.3), 0, 7); ctx.stroke();
+    }
+    ctx.restore();
+  });
+}
+
+// ------------------------------------------------------------------
+// LUKISAN — latar, drone, gauntlet, reticle
+// ------------------------------------------------------------------
+function drawBackground(t) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, 'rgba(6,10,24,0.55)'); g.addColorStop(1, 'rgba(3,5,14,0.75)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  // grid holografik halus
+  ctx.save(); ctx.globalAlpha = 0.06; ctx.strokeStyle = '#22e3f5'; ctx.lineWidth = 1;
+  const spacing = 60;
+  for (let x = (t * 0.01) % spacing; x < W; x += spacing) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = 0; y < H; y += spacing) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  ctx.restore();
+
+  // partikel cahaya terapung
+  ctx.save();
+  for (let i = 0; i < 22; i++) {
+    const px = (i * 137.5 + t * 0.01) % W;
+    const py = (i * 71.3 + Math.sin(t * 0.0007 + i) * 20) % H;
+    ctx.globalAlpha = 0.12 + 0.08 * Math.sin(t * 0.002 + i);
+    ctx.fillStyle = i % 3 === 0 ? '#22e3f5' : '#8b5cf6';
+    ctx.beginPath(); ctx.arc(px, py, 1.6, 0, 7); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawVideoCover() {
+  updateVideoMetrics();
+  const vw = els.video.videoWidth, vh = els.video.videoHeight;
+  if (!vw || !vh) return;
+  ctx.save();
+  ctx.globalAlpha = 0.85;
+  ctx.translate(W, 0); ctx.scale(-1, 1);
+  ctx.drawImage(els.video, videoMetrics.sx, videoMetrics.sy, videoMetrics.sw, videoMetrics.sh, 0, 0, W, H);
+  ctx.restore();
+  // tint sci-fi
+  ctx.save(); ctx.globalAlpha = 0.30; ctx.fillStyle = '#050a18'; ctx.fillRect(0, 0, W, H); ctx.restore();
+}
+
+function drawDrone(d, t) {
+  const bob = Math.sin(t * 0.002 + d.bobPhase) * 10;
+  const cx = d.x, cy = d.baseY + bob;
+  d.x += (d.vx * 0.016);
+  if (d.x < W * 0.06 || d.x > W * 0.94) d.vx *= -1;
+  d.y = cy;
+
+  const isTargeted = lockTarget === d;
+  const fading = d.fading;
+  ctx.save();
+  ctx.globalAlpha = fading ? 0.25 : 1;
+
+  // reactor glow ring
+  ctx.save();
+  ctx.globalAlpha *= 0.5 + 0.15 * Math.sin(t * 0.006);
+  ctx.strokeStyle = d.hit ? (d.correct ? '#22e3f5' : '#ef4444') : '#8b5cf6';
+  ctx.lineWidth = 2; ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = 18;
+  ctx.beginPath(); ctx.arc(cx, cy, d.radius * 0.95, 0, 7); ctx.stroke();
+  ctx.restore();
+
+  // panel body
+  const grad = ctx.createLinearGradient(cx - d.radius, cy - d.radius, cx + d.radius, cy + d.radius);
+  grad.addColorStop(0, 'rgba(59,130,246,0.28)'); grad.addColorStop(1, 'rgba(139,92,246,0.28)');
+  ctx.fillStyle = grad;
+  roundRect(cx - d.radius, cy - d.radius * 0.62, d.radius * 2, d.radius * 1.24, 18);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(34,227,245,0.7)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+  // mechanical arms
+  ctx.strokeStyle = 'rgba(148,163,184,0.6)'; ctx.lineWidth = 2;
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
+    ctx.beginPath();
+    ctx.moveTo(cx + sx * d.radius * 0.55, cy + sy * d.radius * 0.35);
+    ctx.lineTo(cx + sx * d.radius * 1.05, cy + sy * d.radius * 0.75);
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx + sx * d.radius * 1.05, cy + sy * d.radius * 0.75, 4, 0, 7);
+    ctx.fillStyle = 'rgba(34,227,245,0.8)'; ctx.fill();
+  });
+
+  // teks perkataan
+  const showArabic = missionType === 'A';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (showArabic) {
+    ctx.direction = 'rtl';
+    ctx.font = '600 30px "Noto Naskh Arabic", serif';
+    ctx.fillStyle = '#e6fbff'; ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 10;
+    ctx.fillText(d.word.arab, cx, cy);
+  } else {
+    ctx.direction = 'ltr';
+    ctx.font = '700 15px Kanit, sans-serif';
+    ctx.fillStyle = '#e6fbff'; ctx.shadowColor = '#8b5cf6'; ctx.shadowBlur = 8;
+    wrapText(d.word.melayu.toUpperCase(), cx, cy, d.radius * 1.7, 17);
+  }
+  ctx.restore();
+
+  // target lock reticle
+  if (isTargeted && !roundBusy) {
+    const pct = clamp((performance.now() - lockStart) / CONFIG.GAME.lockChargeMs, 0, 1);
+    ctx.save();
+    ctx.translate(cx, cy); ctx.rotate(t * 0.003);
+    ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2.5; ctx.shadowColor = '#f59e0b'; ctx.shadowBlur = 14;
+    ctx.strokeRect(-d.radius * 1.15, -d.radius * 1.15, d.radius * 2.3, d.radius * 2.3);
+    ctx.restore();
+    // charge arc
+    ctx.save();
+    ctx.strokeStyle = '#22e3f5'; ctx.lineWidth = 5; ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(cx, cy, d.radius * 1.35, -Math.PI / 2, -Math.PI / 2 + pct * Math.PI * 2);
+    ctx.stroke(); ctx.restore();
+  }
+}
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function wrapText(text, cx, cy, maxWidth, lineHeight) {
+  const words = text.split(' ');
+  let lines = [], line = '';
+  words.forEach((w) => {
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = w; } else line = test;
+  });
+  lines.push(line);
+  const startY = cy - ((lines.length - 1) * lineHeight) / 2;
+  lines.forEach((l, i) => ctx.fillText(l, cx, startY + i * lineHeight));
+}
+
+function drawGauntlet(t) {
+  if (!rawPalm) { reticle.visible = false; return; }
+  reticle.x = lerp(reticle.x, rawPalm.x, CONFIG.HAND.smoothing);
+  reticle.y = lerp(reticle.y, rawPalm.y, CONFIG.HAND.smoothing);
+
+  if (!openPalm) return;
+
+  ctx.save();
+  const pulse = 1 + 0.06 * Math.sin(t * 0.006);
+  ctx.strokeStyle = '#22e3f5'; ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 22; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(reticle.x, reticle.y, 34 * pulse, 0, 7); ctx.stroke();
+
+  ctx.strokeStyle = '#8b5cf6'; ctx.shadowColor = '#8b5cf6'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(reticle.x, reticle.y, 48 * pulse, 0, 7); ctx.stroke();
+
+  // arc core
+  ctx.fillStyle = '#e6fbff'; ctx.shadowBlur = 26; ctx.shadowColor = '#22e3f5';
+  ctx.beginPath(); ctx.arc(reticle.x, reticle.y, 6, 0, 7); ctx.fill();
+
+  // crosshair
+  ctx.lineWidth = 1.2; ctx.strokeStyle = 'rgba(34,227,245,0.8)';
+  [0, 90, 180, 270].forEach((deg) => {
+    const r1 = 54, r2 = 66, rad = (deg * Math.PI) / 180;
+    ctx.beginPath();
+    ctx.moveTo(reticle.x + Math.cos(rad) * r1, reticle.y + Math.sin(rad) * r1);
+    ctx.lineTo(reticle.x + Math.cos(rad) * r2, reticle.y + Math.sin(rad) * r2);
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
+function drawBeam(t) {
+  if (!beamFx) return;
+  ctx.save();
+  ctx.strokeStyle = '#22e3f5'; ctx.lineWidth = 6; ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 24;
+  ctx.globalAlpha = beamFx.life / 14;
+  ctx.beginPath(); ctx.moveTo(beamFx.from.x, beamFx.from.y); ctx.lineTo(beamFx.to.x, beamFx.to.y); ctx.stroke();
+  ctx.restore();
+  beamFx.life -= 1;
+  if (beamFx.life <= 0) beamFx = null;
+}
+
+// ------------------------------------------------------------------
+// GELUNG UTAMA
+// ------------------------------------------------------------------
+let lastT = performance.now();
+function loop(t) {
+  const dt = Math.min(0.05, (t - lastT) / 1000); lastT = t;
+  ctx.clearRect(0, 0, W, H);
+
+  ctx.save();
+  if (shakeFrames > 0) { ctx.translate(rand(-6, 6), rand(-6, 6)); shakeFrames--; }
+
+  drawVideoCover();
+  drawBackground(t);
+
+  if (gameActive) {
+    // logik penguncian sasaran
+    if (rawPalm && openPalm && !roundBusy) {
+      let hovered = null, best = Infinity;
+      drones.forEach((d) => {
+        const dd = dist(reticle.x, reticle.y, d.x, d.y);
+        if (dd < d.radius + CONFIG.HAND.aimHitPadding && dd < best) { best = dd; hovered = d; }
+      });
+      if (hovered) {
+        lostSince = 0;
+        if (lockTarget !== hovered) { lockTarget = hovered; lockStart = performance.now(); SFX.targetLock(); setNova('Sasaran dikesan. Kunci sasaran...'); }
+        const pct = (performance.now() - lockStart) / CONFIG.GAME.lockChargeMs;
+        if (pct >= 1) { setNova('FIRE!'); fireAtDrone(hovered); }
+        else if (pct > 0.05 && pct < 0.15) setNova('Tenaga sedang dicas...');
+      } else if (lockTarget) {
+        if (!lostSince) lostSince = performance.now();
+        if (performance.now() - lostSince > CONFIG.HAND.lostGraceMs) lockTarget = null;
+      }
+    } else if (lockTarget) {
+      lockTarget = null;
+    }
+
+    drones.forEach((d) => drawDrone(d, t));
+  }
+
+  drawGauntlet(t);
+  drawBeam(t);
+  updateParticles(dt);
+  drawParticles();
+
+  ctx.restore();
+  requestAnimationFrame(loop);
+}
+
+// ------------------------------------------------------------------
+// ALIRAN UI (modal -> permainan -> victory -> review/menu)
+// ------------------------------------------------------------------
+function showModal(el) { el.classList.remove('hidden'); }
+function hideModal(el) { el.classList.add('hidden'); }
+
+async function goToStartMenu() {
+  gameActive = false;
+  stopCamera();
+  els.hud.classList.add('hidden');
+  hideModal(els.victoryModal); hideModal(els.reviewModal);
+  showModal(els.startModal);
+  loadLessonList();
+}
+
+async function beginGame(lessonId) {
+  hideModal(els.startModal);
+  showModal(els.loadingModal);
+  els.loadingMsg.textContent = 'Memuatkan kandungan pelajaran...';
+  els.loadingBar.style.width = '20%';
+  try {
+    currentLesson = await loadLessonDetail(lessonId);
+    if (!currentLesson.words || currentLesson.words.length < 2) {
+      els.loadingMsg.textContent = 'Set pelajaran ini perlu sekurang-kurangnya 2 perkataan. Sila tambah di /game-arab-admin.html.';
+      return;
+    }
+    els.hudLessonName.textContent = currentLesson.name.toUpperCase();
+    els.loadingBar.style.width = '45%';
+    els.loadingMsg.textContent = 'Mengaktifkan sistem pengesanan tangan...';
+
+    await document.fonts.ready;
+    els.loadingBar.style.width = '65%';
+
+    resizeCanvas();
+    await initHandsAndCamera();
+    els.loadingBar.style.width = '100%';
+
+    setTimeout(() => {
+      hideModal(els.loadingModal);
+      els.hud.classList.remove('hidden');
+      gameActive = true;
+      startMissionLoop();
+    }, 300);
+  } catch (err) {
+    console.error(err);
+    hideModal(els.loadingModal);
+    showModal(els.cameraErrorModal);
+  }
+}
+
+function showVictory() {
+  gameActive = false;
+  SFX.missionComplete();
+  const total = currentLesson.words.length;
+  const attempts = correctHits + missedShots;
+  const acc = attempts ? correctHits / attempts : 1;
+  const starCount = acc >= 0.9 ? 3 : acc >= 0.65 ? 2 : 1;
+  document.querySelectorAll('#starRow .star').forEach((s, i) => {
+    s.classList.remove('lit');
+    setTimeout(() => { if (i < starCount) s.classList.add('lit'); }, 250 * (i + 1));
+  });
+  els.statScore.textContent = score;
+  els.statCombo.textContent = '×' + maxComboReached;
+  els.statMiss.textContent = missedShots;
+  els.statWords.textContent = `${total}/${total}`;
+  showModal(els.victoryModal);
+}
+
+function buildReviewList() {
+  els.reviewList.innerHTML = '';
+  currentLesson.words.forEach((w) => {
+    const row = document.createElement('div');
+    row.className = 'glass rounded-lg px-3 py-2 flex items-center justify-between';
+    row.innerHTML = `
+      <span class="font-arabic text-xl" dir="rtl">${w.arab}</span>
+      <span class="text-lg">${w.icon || ''}</span>
+      <span class="font-kanit text-sm text-cyan-200">${w.melayu}</span>`;
+    els.reviewList.appendChild(row);
+  });
+}
+
+// ------------------------------------------------------------------
+// EVENT LISTENERS
+// ------------------------------------------------------------------
+els.startBtn.addEventListener('click', () => {
+  const id = els.lessonSelect.value;
+  if (id) beginGame(id);
+});
+els.retryCameraBtn.addEventListener('click', () => {
+  hideModal(els.cameraErrorModal);
+  const id = els.lessonSelect.value;
+  if (id) beginGame(id); else goToStartMenu();
+});
+els.replayBtn.addEventListener('click', () => {
+  hideModal(els.victoryModal);
+  els.hud.classList.remove('hidden');
+  gameActive = true;
+  startMissionLoop();
+});
+els.reviewBtn.addEventListener('click', () => { buildReviewList(); hideModal(els.victoryModal); showModal(els.reviewModal); });
+els.reviewCloseBtn.addEventListener('click', () => { hideModal(els.reviewModal); showModal(els.victoryModal); });
+els.menuBtn.addEventListener('click', () => { hideModal(els.victoryModal); goToStartMenu(); });
+
+// ------------------------------------------------------------------
+// MULA
+// ------------------------------------------------------------------
+resizeCanvas();
+requestAnimationFrame(loop);
+loadLessonList();
+</script>
+</body>
+</html>

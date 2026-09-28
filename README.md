@@ -8,6 +8,7 @@ Sistem ganjaran interaktif untuk guru prasekolah — Leaderboard bintang + stick
 - **Leaderboard Murid** — senarai murid dengan bintang besar + tahap semasa + sticker unlock, **carian nama (scroll + kelip automatik)**, tambah/kurang bintang **serta-merta tanpa delay**
 - **Spin Wheel** — tekan pada gambar untuk spin, animasi rawak gempak + skrin penuh
 - **Hadiah** — urus poster hadiah besar & sticker untuk setiap tahap bintang
+- **🕹️ Game Arab** — permainan pengesanan tangan (hand-tracking, MediaPipe) untuk kosa kata Bahasa Arab; kandungan pelajaran (topik & senarai perkataan) boleh diedit terus di Panel Guru tanpa ubah kod
 
 ## 🛠️ Teknologi
 - Backend: Node.js + Express
@@ -90,17 +91,44 @@ git push
 2. **Spin Wheel** → pilih kelas → tekan terus pada gambar untuk spin
 3. Guna butang **Skrin Penuh** untuk paparan lebih besar
 
+## 🕹️ Cara guna Game Arab (Kosa Kata Bahasa Arab)
+
+Permainan pendidikan berasaskan pengesanan tangan (MediaPipe Hands) — murid
+menyasar & "menembak" drone siber yang membawa perkataan Arab yang betul
+menggunakan tapak tangan (kamera web).
+
+1. Breadcrumb **🕹️ Game Arab** → buka permainan (`/game-arab.html`). Perlukan
+   kebenaran kamera & sambungan `https://`/`localhost`.
+2. Di dalam permainan, tekan pautan **⚙ Edit kandungan pelajaran (Panel Guru)**
+   (atau terus ke `/game-arab-admin.html`) untuk:
+   - Cipta topik/set kosa kata baharu (boleh banyak topik — cth: Alatan
+     Kelas, Haiwan, Warna)
+   - Tambah / edit / padam perkataan (Bahasa Melayu + Bahasa Arab + ikon)
+     dalam setiap topik
+   - Tiada login diperlukan buat masa ini — kongsi pautan admin hanya
+     dengan guru.
+3. Perubahan kandungan di Panel Guru **terus disimpan ke MongoDB yang sama**
+   dengan Sistem Ganjaran BM (koleksi berasingan: `gamelessonsets`) — tiada
+   setup pangkalan data baharu diperlukan.
+4. (Pilihan) Isi 16 perkataan contoh terus: `npm run seed:game`
+5. Tetapan sensitivity pengesanan tangan boleh dilaraskan dalam objek
+   `CONFIG.HAND` di bahagian atas kod JavaScript `public/game-arab.html`
+   jika pengesanan terasa terlalu/tidak cukup sensitif.
+
 ## 📁 Struktur Fail
 
 ```
 project/
 ├── server.js
 ├── config/db.js
-├── models/          # Class, Student, Group, SpinImage, RewardTier, RewardSettings, SiteSettings
-├── routes/          # API endpoints (termasuk exportWord.js)
+├── models/          # Class, Student, Group, SpinImage, RewardTier, RewardSettings, SiteSettings, GameLessonSet
+├── routes/          # API endpoints (termasuk exportWord.js, gameLessons.js)
 ├── middleware/upload.js
+├── scripts/seedGameLessons.js
 └── public/
     ├── index.html / kelas.html / kumpulan.html / leaderboard.html / spin.html / hadiah.html
+    ├── game-arab.html        # Permainan Game Arab (hand-tracking)
+    ├── game-arab-admin.html  # Panel Guru - edit kandungan Game Arab
     ├── css/style.css
     └── js/          # termasuk site.js (papar nama/logo laman di semua halaman)
 ```
@@ -125,5 +153,8 @@ project/
 | GET/PUT | `/api/reward-tiers/settings/poster` | Poster hadiah besar |
 | GET/PUT | `/api/site-settings` | Nama laman & logo |
 | GET | `/api/export/word` | Muat turun backup semua data (.docx) |
+| GET/POST | `/api/game-lessons` | Senarai / cipta topik pelajaran Game Arab |
+| GET/PUT/DELETE | `/api/game-lessons/:id` | Satu topik penuh / sunting / padam |
+| POST/PUT/DELETE | `/api/game-lessons/:id/words(/:wordId)` | Tambah / sunting / padam perkataan dalam topik |
 
 Selamat mengajar! 🎉📚
