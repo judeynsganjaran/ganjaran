@@ -202,7 +202,7 @@
         <div id="progressDots" class="flex flex-wrap gap-2 justify-center mt-2"></div>
       </div>
       <div class="glass rounded-2xl px-5 py-3 w-full">
-        <div class="font-orbitron text-sm font-bold tracking-widest text-violet-300/80">PENGUMUMAN STESEN</div>
+        <div id="novaLabel" class="font-orbitron text-sm font-bold tracking-widest text-violet-300/80">PENGUMUMAN STESEN</div>
         <div id="novaText" class="font-kanit text-lg md:text-xl font-bold text-cyan-100/90">Bersedia...</div>
       </div>
     </div>
@@ -395,6 +395,7 @@ const els = {
   progressLabel: document.getElementById('progressLabel'),
   progressDots: document.getElementById('progressDots'),
   novaText: document.getElementById('novaText'),
+  novaLabel: document.getElementById('novaLabel'),
   replayBtn: document.getElementById('replayBtn'),
   reviewBtn: document.getElementById('reviewBtn'),
   menuBtn: document.getElementById('menuBtn'),
@@ -627,6 +628,12 @@ function remainingWords() {
   return currentLesson.words.filter((w) => !masteredIds.has(w._id));
 }
 
+// Nombor soalan semasa (1-based) - dipaparkan di panel "SOALAN n - STESEN ..."
+function currentQuestionNumber() {
+  const total = currentLesson.words.length;
+  return Math.min(masteredIds.size + 1, total);
+}
+
 function updateHUD() {
   els.hudScore.textContent = score;
   els.hudCombo.textContent = '×' + combo;
@@ -639,6 +646,8 @@ function updateHUD() {
     dot.className = 'node-dot' + (masteredIds.has(w._id) ? ' done' : '');
     els.progressDots.appendChild(dot);
   });
+  // Panel "pengumuman" bawah kini papar nombor soalan + nama stesen (topik) semasa
+  els.novaLabel.textContent = `SOALAN ${currentQuestionNumber()} — STESEN: ${currentLesson.name.toUpperCase()}`;
 }
 
 // ------------------------------------------------------------------
@@ -668,7 +677,7 @@ function layoutDrones(list, target) {
   list.forEach((w, i) => {
     const slotW = usableW / n;
     const x = marginX + slotW * i + slotW / 2 + rand(-slotW * 0.15, slotW * 0.15);
-    const y = rand(H * 0.20, H * 0.5);
+    const y = rand(H * 0.27, H * 0.55); // jarak ekstra dari panel SOALAN atas supaya tak bertindih
     drones.push({
       word: w,
       correct: w._id === target._id,
@@ -681,16 +690,18 @@ function layoutDrones(list, target) {
     });
   });
 
+  // Label banner atas dipendekkan kepada "SOALAN n" sahaja (bukan ayat arahan
+  // panjang) supaya tak makan ruang & tak berisiko tutup gerabak/pilihan jawapan
+  // di bawahnya. Arahan penuh terus di panel "PENGUMUMAN" bawah.
+  els.bannerLabel.textContent = `SOALAN ${currentQuestionNumber()}`;
   if (missionType === 'A') {
-    els.bannerLabel.textContent = 'SASARAN — PILIH A/B/C/D';
     els.bannerTarget.textContent = target.melayu.toUpperCase();
     els.bannerTarget.classList.remove('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
-    setNova(`SASARAN: ${target.melayu.toUpperCase()}. Tembak drone berlabel A/B/C/D dengan jawapan yang betul.`);
+    setNova(`Cari gerabak A/B/C/D dengan jawapan untuk: ${target.melayu.toUpperCase()}.`);
   } else {
-    els.bannerLabel.textContent = 'APAKAH MAKSUD PERKATAAN INI? — PILIH A/B/C/D';
     els.bannerTarget.textContent = target.arab;
     els.bannerTarget.classList.add('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
-    setNova('Apakah maksud perkataan ini? Tembak drone berlabel A/B/C/D dengan maksud yang betul.');
+    setNova('Cari gerabak A/B/C/D dengan maksud yang betul.');
   }
 }
 
@@ -901,7 +912,7 @@ function startIsyaratRound() {
   quizOptions = shuffle(opts);
   quizHoldCount = -1; quizHoldStart = 0;
 
-  els.bannerLabel.textContent = 'APAKAH MAKSUD PERKATAAN INI?';
+  els.bannerLabel.textContent = `SOALAN ${currentQuestionNumber()}`;
   els.bannerTarget.textContent = target.arab;
   els.bannerTarget.classList.add('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
   setNova('Tunjuk bilangan jari (1-4) ikut nombor pilihan jawapan yang betul, tahan sekejap.');
