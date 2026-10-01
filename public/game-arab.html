@@ -50,7 +50,7 @@
   }
   .hidden{ display:none !important; }
 
-  .node-dot{ width:10px; height:10px; border-radius:9999px; background:rgba(148,163,184,.35); box-shadow:none; }
+  .node-dot{ width:15px; height:15px; border-radius:9999px; background:rgba(148,163,184,.35); box-shadow:none; }
   .node-dot.done{ background:var(--cyber-cyan); box-shadow:0 0 10px var(--cyber-cyan); }
 
   @keyframes floatY{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-6px);} }
@@ -62,36 +62,36 @@
   #loadingBar{ transition: width .25s ease; }
   ::-webkit-scrollbar{ width:8px; } ::-webkit-scrollbar-thumb{ background:rgba(34,227,245,.4); border-radius:4px; }
 
-  /* ===== MODE SELECT CARDS ===== */
+  /* ===== MODE SELECT CARDS (besar & jelas) ===== */
   .mode-card{
     background: linear-gradient(135deg, rgba(30,41,59,.6), rgba(15,23,42,.8));
-    border: 1px solid rgba(34,227,245,.3); border-radius: 16px; padding: 16px;
+    border: 2px solid rgba(34,227,245,.3); border-radius: 20px; padding: 22px;
     text-align: left; cursor: pointer; transition: all .2s ease; color:#e6fbff; width:100%;
   }
   .mode-card:hover{ border-color: rgba(34,227,245,.8); transform: translateY(-2px); box-shadow: 0 0 20px rgba(34,227,245,.25); }
-  .mode-card .mode-icon{ font-size: 1.8rem; margin-bottom:4px; }
-  .mode-card .mode-name{ font-family:'Orbitron',sans-serif; font-size:.85rem; letter-spacing:.05em; margin-bottom:2px; }
-  .mode-card .mode-desc{ font-family:'Kanit',sans-serif; font-size:.72rem; color:#94a3b8; }
+  .mode-card .mode-icon{ font-size: 3rem; margin-bottom:6px; }
+  .mode-card .mode-name{ font-family:'Orbitron',sans-serif; font-weight:800; font-size:1.2rem; letter-spacing:.04em; margin-bottom:6px; }
+  .mode-card .mode-desc{ font-family:'Kanit',sans-serif; font-weight:500; font-size:1rem; line-height:1.4; color:#cbd5e1; }
 
-  /* ===== FINGER QUIZ PANEL ===== */
+  /* ===== FINGER QUIZ PANEL (besar & jelas) ===== */
   #quizPanel{ z-index: 20; }
   .quiz-option{
     position: relative; overflow: hidden;
-    background: rgba(15,23,42,.78); border: 1px solid rgba(148,163,184,.3);
-    border-radius: 12px; padding: 10px 14px; display:flex; align-items:center; gap:10px;
-    font-family:'Kanit',sans-serif; font-size:.85rem; color:#e6fbff; margin-bottom:8px;
+    background: rgba(15,23,42,.82); border: 2px solid rgba(148,163,184,.35);
+    border-radius: 16px; padding: 16px 22px; display:flex; align-items:center; gap:14px;
+    font-family:'Kanit',sans-serif; font-weight:700; font-size:1.4rem; color:#e6fbff; margin-bottom:12px;
   }
   .quiz-option .quiz-num{
-    font-family:'Orbitron',sans-serif; font-weight:700; width:26px; height:26px; border-radius:50%;
-    background: rgba(139,92,246,.35); display:flex; align-items:center; justify-content:center; font-size:.8rem; flex-shrink:0; z-index:1;
+    font-family:'Orbitron',sans-serif; font-weight:800; width:40px; height:40px; border-radius:50%;
+    background: rgba(139,92,246,.4); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; z-index:1;
   }
   .quiz-option .quiz-fill{
-    position:absolute; left:0; top:0; bottom:0; width:0%; background: rgba(34,227,245,.28); z-index:0;
+    position:absolute; left:0; top:0; bottom:0; width:0%; background: rgba(34,227,245,.3); z-index:0;
   }
   .quiz-option .quiz-text{ position:relative; z-index:1; }
-  .quiz-option.active{ border-color: rgba(34,227,245,.7); }
-  .quiz-option.correct{ border-color:#22e3f5; background: rgba(34,227,245,.18); }
-  .quiz-option.wrong{ border-color:#ef4444; background: rgba(239,68,68,.18); }
+  .quiz-option.active{ border-color: rgba(34,227,245,.8); }
+  .quiz-option.correct{ border-color:#22e3f5; background: rgba(34,227,245,.2); }
+  .quiz-option.wrong{ border-color:#ef4444; background: rgba(239,68,68,.2); }
 </style>
 </head>
 <body class="text-slate-100">
@@ -103,68 +103,68 @@
   <!-- ===== HUD ===== -->
   <div id="hud" class="hidden pointer-events-none">
     <!-- Top Left: Mission label -->
-    <div class="fixed top-3 left-3 glass rounded-xl px-4 py-2">
-      <div class="font-orbitron text-[10px] tracking-widest text-cyan-300/80">TOPIK</div>
-      <div id="hudLessonName" class="font-orbitron text-sm glow-cyan">—</div>
+    <div class="fixed top-3 left-3 glass rounded-2xl px-5 py-3">
+      <div class="font-orbitron text-sm font-bold tracking-widest text-cyan-300/80">TOPIK</div>
+      <div id="hudLessonName" class="font-orbitron text-xl md:text-2xl font-black glow-cyan">—</div>
     </div>
 
     <!-- Top Center: instruction banner -->
-    <div class="fixed top-3 left-1/2 -translate-x-1/2 glass rounded-xl px-6 py-2 text-center min-w-[220px]">
-      <div id="bannerLabel" class="font-orbitron text-[10px] tracking-widest text-violet-300/80">SASARAN</div>
-      <div id="bannerTarget" class="font-orbitron text-lg md:text-2xl glow-violet font-arabic">—</div>
+    <div class="fixed top-3 left-1/2 -translate-x-1/2 glass rounded-2xl px-8 py-4 text-center min-w-[260px]">
+      <div id="bannerLabel" class="font-orbitron text-sm md:text-base font-bold tracking-widest text-violet-300/80">SASARAN</div>
+      <div id="bannerTarget" class="font-orbitron text-3xl md:text-5xl font-black glow-violet font-arabic">—</div>
     </div>
 
     <!-- Top Right: score / combo -->
-    <div class="fixed top-3 right-3 glass rounded-xl px-4 py-2 text-right">
-      <div class="font-orbitron text-[10px] tracking-widest text-cyan-300/80">SKOR</div>
-      <div id="hudScore" class="font-orbitron text-xl glow-cyan">0</div>
-      <div class="font-orbitron text-[10px] tracking-widest text-amber-300/80 mt-1">COMBO</div>
-      <div id="hudCombo" class="font-orbitron text-lg glow-amber">×1</div>
+    <div class="fixed top-3 right-3 glass rounded-2xl px-5 py-3 text-right">
+      <div class="font-orbitron text-sm font-bold tracking-widest text-cyan-300/80">SKOR</div>
+      <div id="hudScore" class="font-orbitron text-3xl md:text-4xl font-black glow-cyan">0</div>
+      <div class="font-orbitron text-sm font-bold tracking-widest text-amber-300/80 mt-1">COMBO</div>
+      <div id="hudCombo" class="font-orbitron text-2xl md:text-3xl font-black glow-amber">×1</div>
     </div>
 
     <!-- Bottom: progress + AI NOVA -->
-    <div class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[min(640px,94vw)] flex flex-col items-center gap-2">
-      <div class="glass rounded-xl px-4 py-1.5 w-full text-center">
-        <div class="font-orbitron text-[10px] tracking-widest text-cyan-300/80" id="progressLabel">MISI 0/0</div>
-        <div id="progressDots" class="flex flex-wrap gap-1.5 justify-center mt-1"></div>
+    <div class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[min(760px,96vw)] flex flex-col items-center gap-2">
+      <div class="glass rounded-2xl px-5 py-2.5 w-full text-center">
+        <div class="font-orbitron text-sm md:text-base font-bold tracking-widest text-cyan-300/80" id="progressLabel">MISI 0/0</div>
+        <div id="progressDots" class="flex flex-wrap gap-2 justify-center mt-2"></div>
       </div>
-      <div class="glass rounded-xl px-4 py-2 w-full">
-        <div class="font-orbitron text-[10px] tracking-widest text-violet-300/80">A.I. NOVA</div>
-        <div id="novaText" class="font-kanit text-sm md:text-base text-cyan-100/90">Bersedia...</div>
+      <div class="glass rounded-2xl px-5 py-3 w-full">
+        <div class="font-orbitron text-sm font-bold tracking-widest text-violet-300/80">A.I. NOVA</div>
+        <div id="novaText" class="font-kanit text-lg md:text-xl font-bold text-cyan-100/90">Bersedia...</div>
       </div>
     </div>
   </div>
 
   <!-- ===== FINGER QUIZ PANEL (Mod Isyarat Jari sahaja) ===== -->
-  <div id="quizPanel" class="hidden fixed bottom-24 left-1/2 -translate-x-1/2 w-[min(480px,92vw)]"></div>
+  <div id="quizPanel" class="hidden fixed bottom-32 left-1/2 -translate-x-1/2 w-[min(560px,94vw)]"></div>
 
   <!-- ===== START MODAL ===== -->
   <div id="startModal" class="modal-overlay">
-    <div class="glass rounded-2xl p-6 md:p-8 max-w-lg w-full">
-      <div class="text-center mb-4">
-        <div class="font-orbitron text-2xl md:text-3xl glow-cyan mb-1">🎮 ILMUVERSE GAMEBOX</div>
-        <div class="font-orbitron text-sm tracking-widest text-violet-300">KUIZ INTERAKTIF PENGESANAN TANGAN</div>
+    <div class="glass rounded-2xl p-6 md:p-10 max-w-xl w-full">
+      <div class="text-center mb-5">
+        <div class="font-orbitron text-4xl md:text-5xl font-black glow-cyan mb-2">🎮 ILMUVERSE GAMEBOX</div>
+        <div class="font-orbitron text-base md:text-lg font-bold tracking-widest text-violet-300">KUIZ INTERAKTIF PENGESANAN TANGAN</div>
       </div>
-      <p class="font-kanit text-center text-slate-300 text-sm mb-4">Gunakan tapak tangan &amp; jari anda sebagai kawalan — tiada sentuhan skrin diperlukan. Sesuai untuk sebarang subjek.</p>
+      <p class="font-kanit text-center text-slate-200 text-base md:text-lg font-semibold mb-5">Gunakan tapak tangan &amp; jari anda sebagai kawalan — tiada sentuhan skrin diperlukan. Sesuai untuk sebarang subjek.</p>
 
-      <label class="font-orbitron text-[11px] tracking-widest text-cyan-300/80 block mb-1">PILIH TOPIK PELAJARAN</label>
-      <select id="lessonSelect" class="w-full mb-2 bg-slate-900/70 border border-cyan-500/40 rounded-lg px-3 py-2 font-kanit text-sm"></select>
-      <div id="lessonStatus" class="text-xs font-kanit text-slate-400 mb-4 min-h-[1.2em]">Memuatkan senarai topik...</div>
+      <label class="font-orbitron text-sm md:text-base font-bold tracking-widest text-cyan-300/80 block mb-2">PILIH TOPIK PELAJARAN</label>
+      <select id="lessonSelect" class="w-full mb-2 bg-slate-900/70 border-2 border-cyan-500/40 rounded-lg px-4 py-3 font-kanit font-semibold text-lg"></select>
+      <div id="lessonStatus" class="text-sm md:text-base font-kanit font-medium text-slate-300 mb-5 min-h-[1.4em]">Memuatkan senarai topik...</div>
 
-      <button id="startBtn" class="btn-cyber w-full rounded-lg py-3 font-orbitron tracking-widest" disabled>SETERUSNYA →</button>
-      <div class="text-center mt-3 flex items-center justify-center gap-4">
-        <a href="/index.html" class="text-[11px] font-kanit text-slate-400 hover:text-cyan-300 underline">← Ganjaran BM</a>
-        <a href="/game-arab-admin.html" class="text-[11px] font-kanit text-slate-400 hover:text-cyan-300 underline">⚙ Edit kandungan pelajaran (Panel Guru)</a>
+      <button id="startBtn" class="btn-cyber w-full rounded-lg py-4 font-orbitron font-bold text-lg tracking-widest" disabled>SETERUSNYA →</button>
+      <div class="text-center mt-4 flex items-center justify-center gap-5">
+        <a href="/index.html" class="text-sm font-kanit font-semibold text-slate-300 hover:text-cyan-300 underline">← Ganjaran BM</a>
+        <a href="/game-arab-admin.html" class="text-sm font-kanit font-semibold text-slate-300 hover:text-cyan-300 underline">⚙ Edit kandungan pelajaran (Panel Guru)</a>
       </div>
     </div>
   </div>
 
   <!-- ===== MODE SELECT MODAL ===== -->
   <div id="modeModal" class="modal-overlay hidden">
-    <div class="glass rounded-2xl p-6 md:p-8 max-w-2xl w-full">
-      <div class="text-center mb-4">
-        <div class="font-orbitron text-lg glow-cyan">PILIH MOD PERMAINAN</div>
-        <div class="font-kanit text-xs text-slate-400 mt-1" id="modeModalLessonName"></div>
+    <div class="glass rounded-2xl p-6 md:p-9 max-w-3xl w-full">
+      <div class="text-center mb-5">
+        <div class="font-orbitron text-2xl md:text-3xl font-black glow-cyan">PILIH MOD PERMAINAN</div>
+        <div class="font-kanit text-base font-semibold text-slate-300 mt-1" id="modeModalLessonName"></div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <button class="mode-card" data-mode="tembak">
@@ -193,18 +193,18 @@
           <div class="mode-desc">Perkataan dipaparkan sekejap pada drone, kemudian tersembunyi — ingat kedudukannya &amp; sasar drone yang betul.</div>
         </button>
       </div>
-      <div class="text-center mt-4">
-        <button id="modeBackBtn" class="text-[11px] font-kanit text-slate-400 hover:text-cyan-300 underline">← Tukar topik</button>
+      <div class="text-center mt-5">
+        <button id="modeBackBtn" class="text-sm font-kanit font-semibold text-slate-300 hover:text-cyan-300 underline">← Tukar topik</button>
       </div>
     </div>
   </div>
 
   <!-- ===== LOADING MODAL ===== -->
   <div id="loadingModal" class="modal-overlay hidden">
-    <div class="glass rounded-2xl p-8 max-w-sm w-full text-center">
-      <div class="font-orbitron text-sm tracking-widest text-cyan-300 mb-3">CONNECTING TO CYBER VISION...</div>
-      <div id="loadingMsg" class="font-kanit text-xs text-slate-300 mb-4">Mengaktifkan sistem pengesanan tangan...</div>
-      <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+    <div class="glass rounded-2xl p-8 max-w-md w-full text-center">
+      <div class="font-orbitron text-lg font-bold tracking-widest text-cyan-300 mb-3">CONNECTING TO CYBER VISION...</div>
+      <div id="loadingMsg" class="font-kanit text-base font-medium text-slate-200 mb-4">Mengaktifkan sistem pengesanan tangan...</div>
+      <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
         <div id="loadingBar" class="h-full bg-gradient-to-r from-cyan-400 to-violet-500" style="width:5%"></div>
       </div>
     </div>
@@ -212,39 +212,39 @@
 
   <!-- ===== CAMERA ERROR MODAL ===== -->
   <div id="cameraErrorModal" class="modal-overlay hidden">
-    <div class="glass rounded-2xl p-8 max-w-sm w-full text-center border-red-500/50">
-      <div class="font-orbitron text-lg text-red-400 mb-2">AKSES KAMERA DITOLAK</div>
-      <p class="font-kanit text-sm text-slate-300 mb-5">Permainan ini memerlukan kamera untuk mengesan pergerakan tangan. Sila benarkan akses kamera pada pelayar anda.</p>
-      <button id="retryCameraBtn" class="btn-cyber rounded-lg px-5 py-2 font-orbitron">CUBA SEMULA</button>
+    <div class="glass rounded-2xl p-8 max-w-md w-full text-center border-red-500/50">
+      <div class="font-orbitron text-2xl font-black text-red-400 mb-3">AKSES KAMERA DITOLAK</div>
+      <p class="font-kanit text-base md:text-lg font-medium text-slate-200 mb-6">Permainan ini memerlukan kamera untuk mengesan pergerakan tangan. Sila benarkan akses kamera pada pelayar anda.</p>
+      <button id="retryCameraBtn" class="btn-cyber rounded-lg px-8 py-3 font-orbitron font-bold text-base">CUBA SEMULA</button>
     </div>
   </div>
 
   <!-- ===== VICTORY MODAL ===== -->
   <div id="victoryModal" class="modal-overlay hidden">
-    <div class="glass rounded-2xl p-6 md:p-8 max-w-md w-full text-center">
-      <div class="font-orbitron text-xl md:text-2xl glow-cyan mb-1">MISSION COMPLETE</div>
-      <div class="font-orbitron text-2xl glow-amber mb-3">🎉 TAHNIAH!</div>
-      <div id="starRow" class="mb-4"><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
-      <div class="grid grid-cols-2 gap-3 text-left font-kanit text-sm mb-5">
-        <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Skor Akhir</div><div id="statScore" class="font-orbitron text-lg glow-cyan">0</div></div>
-        <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Combo Tertinggi</div><div id="statCombo" class="font-orbitron text-lg glow-amber">×1</div></div>
-        <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Tersasar / Salah</div><div id="statMiss" class="font-orbitron text-lg">0</div></div>
-        <div class="glass rounded-lg p-3"><div class="text-slate-400 text-xs">Perkataan Dikuasai</div><div id="statWords" class="font-orbitron text-lg">0/0</div></div>
+    <div class="glass rounded-2xl p-6 md:p-9 max-w-lg w-full text-center">
+      <div class="font-orbitron text-3xl md:text-4xl font-black glow-cyan mb-1">MISSION COMPLETE</div>
+      <div class="font-orbitron text-3xl md:text-4xl font-black glow-amber mb-4">🎉 TAHNIAH!</div>
+      <div id="starRow" class="mb-5"><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+      <div class="grid grid-cols-2 gap-3 text-left font-kanit text-base mb-6">
+        <div class="glass rounded-lg p-4"><div class="text-slate-300 text-sm font-semibold">Skor Akhir</div><div id="statScore" class="font-orbitron text-2xl md:text-3xl font-black glow-cyan">0</div></div>
+        <div class="glass rounded-lg p-4"><div class="text-slate-300 text-sm font-semibold">Combo Tertinggi</div><div id="statCombo" class="font-orbitron text-2xl md:text-3xl font-black glow-amber">×1</div></div>
+        <div class="glass rounded-lg p-4"><div class="text-slate-300 text-sm font-semibold">Tersasar / Salah</div><div id="statMiss" class="font-orbitron text-2xl md:text-3xl font-black">0</div></div>
+        <div class="glass rounded-lg p-4"><div class="text-slate-300 text-sm font-semibold">Perkataan Dikuasai</div><div id="statWords" class="font-orbitron text-2xl md:text-3xl font-black">0/0</div></div>
       </div>
-      <div class="flex flex-col gap-2">
-        <button id="replayBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm">🔄 MAIN SEMULA</button>
-        <button id="reviewBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm">📚 ULANG KAJI KANDUNGAN</button>
-        <button id="menuBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm">🏠 MENU UTAMA</button>
+      <div class="flex flex-col gap-3">
+        <button id="replayBtn" class="btn-cyber rounded-lg py-3.5 font-orbitron font-bold text-base md:text-lg">🔄 MAIN SEMULA</button>
+        <button id="reviewBtn" class="btn-cyber rounded-lg py-3.5 font-orbitron font-bold text-base md:text-lg">📚 ULANG KAJI KANDUNGAN</button>
+        <button id="menuBtn" class="btn-cyber rounded-lg py-3.5 font-orbitron font-bold text-base md:text-lg">🏠 MENU UTAMA</button>
       </div>
     </div>
   </div>
 
   <!-- ===== REVIEW MODAL ===== -->
   <div id="reviewModal" class="modal-overlay hidden">
-    <div class="glass rounded-2xl p-6 max-w-lg w-full max-h-[85vh] flex flex-col">
-      <div class="font-orbitron text-lg glow-cyan text-center mb-3">KANDUNGAN YANG TELAH DIPELAJARI</div>
-      <div id="reviewList" class="overflow-y-auto grid grid-cols-1 gap-2 pr-1"></div>
-      <button id="reviewCloseBtn" class="btn-cyber rounded-lg py-2.5 font-orbitron text-sm mt-4">TUTUP</button>
+    <div class="glass rounded-2xl p-6 md:p-8 max-w-xl w-full max-h-[85vh] flex flex-col">
+      <div class="font-orbitron text-2xl font-black glow-cyan text-center mb-4">KANDUNGAN YANG TELAH DIPELAJARI</div>
+      <div id="reviewList" class="overflow-y-auto grid grid-cols-1 gap-2.5 pr-1"></div>
+      <button id="reviewCloseBtn" class="btn-cyber rounded-lg py-3 font-orbitron font-bold text-base mt-5">TUTUP</button>
     </div>
   </div>
 </div>
@@ -283,7 +283,7 @@ const CONFIG = {
     dronesPerRound: 4,
     feedbackDelayMs: 1900,
     maxCombo: 5,
-    droneRadius: 78,
+    droneRadius: 92,
     timeAttackSeconds: 60,         // Mod Lawan Masa
     memoryRevealMs: 2200,          // Mod Ingat - tempoh perkataan ditunjuk sebelum tersembunyi
     fingerHoldMs: 800,             // Mod Isyarat Jari - tempoh perlu stabil sebelum jawapan dikunci
@@ -783,24 +783,24 @@ function drawMatchCard(c, isRightSide) {
   const isHeld = c === matchHeld;
   const cx = isHeld ? matchHeldPos.x : c.x;
   const cy = isHeld ? matchHeldPos.y : c.y;
-  const w = 240, h = 54;
+  const w = 300, h = 74;
   ctx.save();
   if (isHeld) { ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 26; }
   const grad = ctx.createLinearGradient(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2);
   grad.addColorStop(0, isHeld ? 'rgba(34,227,245,0.35)' : 'rgba(59,130,246,0.28)');
   grad.addColorStop(1, 'rgba(139,92,246,0.28)');
   ctx.fillStyle = grad;
-  roundRect(cx - w / 2, cy - h / 2, w, h, 14);
+  roundRect(cx - w / 2, cy - h / 2, w, h, 16);
   ctx.fill();
-  ctx.strokeStyle = isHeld ? '#22e3f5' : 'rgba(34,227,245,0.6)'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.strokeStyle = isHeld ? '#22e3f5' : 'rgba(34,227,245,0.6)'; ctx.lineWidth = 2; ctx.stroke();
 
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillStyle = '#e6fbff';
   if (isRightSide) {
-    ctx.direction = 'rtl'; ctx.font = '600 22px "Noto Naskh Arabic", serif';
+    ctx.direction = 'rtl'; ctx.font = '700 28px "Noto Naskh Arabic", serif';
     ctx.fillText(c.word.arab, cx, cy);
   } else {
-    ctx.direction = 'ltr'; ctx.font = '700 15px Kanit, sans-serif';
+    ctx.direction = 'ltr'; ctx.font = '800 19px Kanit, sans-serif';
     ctx.fillText(c.word.melayu.toUpperCase(), cx, cy);
   }
   ctx.restore();
@@ -932,8 +932,9 @@ function drawParticles() {
 // LUKISAN — latar, drone, gauntlet, reticle
 // ------------------------------------------------------------------
 function drawBackground(t) {
+  // Lapisan gelap dikurangkan supaya kamera/muka murid kekal jelas kelihatan.
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, 'rgba(6,10,24,0.55)'); g.addColorStop(1, 'rgba(3,5,14,0.75)');
+  g.addColorStop(0, 'rgba(6,10,24,0.18)'); g.addColorStop(1, 'rgba(3,5,14,0.28)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 
   ctx.save(); ctx.globalAlpha = 0.06; ctx.strokeStyle = '#22e3f5'; ctx.lineWidth = 1;
@@ -957,12 +958,14 @@ function drawVideoCover() {
   updateVideoMetrics();
   const vw = els.video.videoWidth, vh = els.video.videoHeight;
   if (!vw || !vh) return;
+  // Kamera/muka kekal jelas & terang (tidak digelapkan) supaya murid senang nampak diri sendiri.
   ctx.save();
-  ctx.globalAlpha = 0.85;
+  ctx.globalAlpha = 1;
   ctx.translate(W, 0); ctx.scale(-1, 1);
   ctx.drawImage(els.video, videoMetrics.sx, videoMetrics.sy, videoMetrics.sw, videoMetrics.sh, 0, 0, W, H);
   ctx.restore();
-  ctx.save(); ctx.globalAlpha = 0.30; ctx.fillStyle = '#050a18'; ctx.fillRect(0, 0, W, H); ctx.restore();
+  // Lapisan gelap nipis sahaja - hanya untuk kontras teks HUD, bukan untuk sembunyikan muka.
+  ctx.save(); ctx.globalAlpha = 0.10; ctx.fillStyle = '#050a18'; ctx.fillRect(0, 0, W, H); ctx.restore();
 }
 
 function drawDrone(d, t) {
@@ -1005,21 +1008,21 @@ function drawDrone(d, t) {
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   if (memoryHidden) {
     ctx.direction = 'ltr';
-    ctx.font = '700 34px Kanit, sans-serif';
+    ctx.font = '800 42px Kanit, sans-serif';
     ctx.fillStyle = '#94a3b8'; ctx.shadowColor = '#8b5cf6'; ctx.shadowBlur = 8;
     ctx.fillText('❓', cx, cy);
   } else {
     const showArabic = missionType === 'A';
     if (showArabic) {
       ctx.direction = 'rtl';
-      ctx.font = '600 30px "Noto Naskh Arabic", serif';
+      ctx.font = '700 38px "Noto Naskh Arabic", serif';
       ctx.fillStyle = '#e6fbff'; ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 10;
       ctx.fillText(d.word.arab, cx, cy);
     } else {
       ctx.direction = 'ltr';
-      ctx.font = '700 15px Kanit, sans-serif';
+      ctx.font = '800 20px Kanit, sans-serif';
       ctx.fillStyle = '#e6fbff'; ctx.shadowColor = '#8b5cf6'; ctx.shadowBlur = 8;
-      wrapText(d.word.melayu.toUpperCase(), cx, cy, d.radius * 1.7, 17);
+      wrapText(d.word.melayu.toUpperCase(), cx, cy, d.radius * 1.7, 22);
     }
   }
   ctx.restore();
@@ -1101,9 +1104,9 @@ function drawFingerCursor(t) {
   reticle.x = lerp(reticle.x, rawPalm.x, CONFIG.HAND.smoothing);
   reticle.y = lerp(reticle.y, rawPalm.y, CONFIG.HAND.smoothing);
   ctx.save();
-  ctx.strokeStyle = '#8b5cf6'; ctx.lineWidth = 2.5; ctx.shadowColor = '#8b5cf6'; ctx.shadowBlur = 16;
-  ctx.beginPath(); ctx.arc(reticle.x, reticle.y, 30, 0, 7); ctx.stroke();
-  ctx.fillStyle = '#e6fbff'; ctx.font = '700 22px Orbitron, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.strokeStyle = '#8b5cf6'; ctx.lineWidth = 3; ctx.shadowColor = '#8b5cf6'; ctx.shadowBlur = 18;
+  ctx.beginPath(); ctx.arc(reticle.x, reticle.y, 38, 0, 7); ctx.stroke();
+  ctx.fillStyle = '#e6fbff'; ctx.font = '800 32px Orbitron, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(fingerCount >= 1 && fingerCount <= 4 ? String(fingerCount) : '–', reticle.x, reticle.y);
   ctx.restore();
 }
@@ -1262,11 +1265,11 @@ function buildReviewList() {
   els.reviewList.innerHTML = '';
   currentLesson.words.forEach((w) => {
     const row = document.createElement('div');
-    row.className = 'glass rounded-lg px-3 py-2 flex items-center justify-between';
+    row.className = 'glass rounded-lg px-4 py-3 flex items-center justify-between';
     row.innerHTML = `
-      <span class="font-arabic text-xl" dir="auto">${w.arab}</span>
-      <span class="text-lg">${w.icon || ''}</span>
-      <span class="font-kanit text-sm text-cyan-200">${w.melayu}</span>`;
+      <span class="font-arabic text-2xl font-bold" dir="auto">${w.arab}</span>
+      <span class="text-2xl">${w.icon || ''}</span>
+      <span class="font-kanit text-lg font-bold text-cyan-200">${w.melayu}</span>`;
     els.reviewList.appendChild(row);
   });
 }

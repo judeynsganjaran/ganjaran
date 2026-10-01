@@ -20,13 +20,11 @@ const GameLessonSetSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     description: { type: String, default: '', trim: true },
+    // Tiada had bilangan soalan/perkataan - guru boleh tambah seberapa banyak
+    // yang diperlukan untuk satu topik/aktiviti.
     words: {
       type: [GameWordSchema],
       default: [],
-      validate: {
-        validator: (arr) => arr.length <= 60,
-        message: 'Maksimum 60 perkataan setiap set pelajaran.',
-      },
     },
   },
   { timestamps: true }
