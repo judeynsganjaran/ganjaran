@@ -43,7 +43,7 @@
   }
   .empty-hint { text-align: center; color: #9a8a91; padding: 30px 10px; font-weight: 600; }
 
-  /* ===== SOALAN TEMBAK (Mod Tembak A/B/C/D) - tempat edit BERASINGAN drpd "Perkataan" ===== */
+  /* ===== SOALAN TEMBAK (Mod Tembak A/B/C) - tempat edit BERASINGAN drpd "Perkataan" ===== */
   .tembak-panel { margin-top: 14px; border-top: 2px dashed #e4d9ff; padding-top: 14px; }
   .tembak-question-card {
     background: #F3EEFF; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px;
@@ -95,7 +95,7 @@
   <div class="card" style="background:#FFF3DC; border:2px solid #FFD98E; margin-bottom:18px;">
     <strong>ℹ️ Setiap topik ada 2 tempat edit berasingan:</strong>
     <div style="margin-top:8px; display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-      <div>🎯 <strong>Soalan Tembak (A/B/C/D)</strong><br>Untuk <strong>Mod Tembak</strong> sahaja. Taip soalan sendiri + taip sendiri 4 pilihan jawapan + tandakan yang betul — kawalan penuh di tangan guru.</div>
+      <div>🎯 <strong>Soalan Tembak (A/B/C)</strong><br>Untuk <strong>Mod Tembak</strong> sahaja. Taip soalan sendiri + taip sendiri 3 pilihan jawapan + tandakan yang betul — kawalan penuh di tangan guru.</div>
       <div>🔗 <strong>Perkataan</strong><br>Untuk <strong>Mod Padan</strong> &amp; <strong>Mod Isyarat Jari</strong> sahaja. Senarai perkataan+maksud — permainan auto padan/jana pilihan sendiri.</div>
     </div>
   </div>
@@ -138,7 +138,7 @@
         <span class="tembak-count-badge" style="background:#8B5CF6; color:#fff; font-size:12px; font-weight:700; padding:4px 12px; border-radius:999px; align-self:center;"></span>
         <button class="save-lesson-btn btn btn-secondary btn-sm">💾 Simpan</button>
         <button class="toggle-words-btn btn btn-outline btn-sm">🔗 Perkataan (Padan/Isyarat)</button>
-        <button class="toggle-tembak-btn btn btn-outline btn-sm">🎯 Soalan Tembak (A/B/C/D)</button>
+        <button class="toggle-tembak-btn btn btn-outline btn-sm">🎯 Soalan Tembak (A/B/C)</button>
         <button class="delete-lesson-btn btn btn-danger btn-sm">🗑️ Padam</button>
       </div>
     </div>
@@ -162,7 +162,7 @@
     </div>
 
     <div class="tembak-panel" style="display:none;">
-      <div class="add-word-hint" style="margin:0 2px 10px;">🎯 Tempat edit untuk <strong>Mod Tembak (A/B/C/D)</strong> sahaja. Taip soalan sendiri, taip sendiri 4 pilihan jawapan, &amp; tandakan (⚪) yang mana betul.</div>
+      <div class="add-word-hint" style="margin:0 2px 10px;">🎯 Tempat edit untuk <strong>Mod Tembak (A/B/C)</strong> sahaja. Taip soalan sendiri, taip sendiri 3 pilihan jawapan, &amp; tandakan (⚪) yang mana betul.</div>
       <div class="tembak-questions-list"></div>
 
       <div class="tembak-question-card tembak-new-form">
@@ -172,7 +172,7 @@
           <button class="add-tq-btn btn btn-success btn-sm">+ Tambah Soalan</button>
         </div>
       </div>
-      <div class="add-word-hint">💡 Isi Soalan, isi keempat-empat pilihan A/B/C/D, tandakan satu yang betul, tekan <strong>Tambah Soalan</strong>. Tiada had bilangan soalan.</div>
+      <div class="add-word-hint">💡 Isi Soalan, isi ketiga-tiga pilihan A/B/C, tandakan satu yang betul, tekan <strong>Tambah Soalan</strong>. Tiada had bilangan soalan.</div>
     </div>
   </div>
 </template>
@@ -273,14 +273,14 @@ function renderLessonCard(lessonSummary) {
     });
   });
 
-  // ----- Panel "Soalan Tembak (A/B/C/D)" - tempat edit BERASINGAN -----
+  // ----- Panel "Soalan Tembak (A/B/C)" - tempat edit BERASINGAN -----
   const tembakPanel = $('.tembak-panel', card);
   const toggleTembakBtn = $('.toggle-tembak-btn', card);
   let tembakLoaded = false;
   toggleTembakBtn.addEventListener('click', async () => {
     const showing = tembakPanel.style.display !== 'none';
     tembakPanel.style.display = showing ? 'none' : 'block';
-    toggleTembakBtn.textContent = showing ? '🎯 Soalan Tembak (A/B/C/D)' : '🎯 Tutup';
+    toggleTembakBtn.textContent = showing ? '🎯 Soalan Tembak (A/B/C)' : '🎯 Tutup';
     if (!showing && !tembakLoaded) { tembakLoaded = true; await refreshTembakQuestions(lessonSummary._id, tembakPanel, card); }
   });
 
@@ -297,7 +297,7 @@ function renderLessonCard(lessonSummary) {
     const soalan = newTqSoalan.value.trim();
     if (!soalan) return alert('Soalan tidak boleh kosong.');
     const options = newOptionFields.map((f) => ({ text: f.input.value.trim(), correct: f.radio.checked }));
-    if (options.some((o) => !o.text)) return alert('Isikan keempat-empat pilihan A/B/C/D.');
+    if (options.some((o) => !o.text)) return alert('Isikan ketiga-tiga pilihan A/B/C.');
     try {
       await api(`/${lessonSummary._id}/tembak-questions`, { method: 'POST', body: JSON.stringify({ soalan, options }) });
       newTqSoalan.value = '';
@@ -314,11 +314,11 @@ function renderLessonCard(lessonSummary) {
   return card;
 }
 
-// Bina 4 baris pilihan (radio "betul" + label A/B/C/D + input teks) di dalam
+// Bina 3 baris pilihan (radio "betul" + label A/B/C + input teks) di dalam
 // `container`. groupName mesti unik supaya radio button saling eksklusif
 // dalam SATU soalan sahaja (bukan across soalan lain / kad topik lain).
 function buildOptionRows(container, groupName) {
-  const letters = ['A', 'B', 'C', 'D'];
+  const letters = ['A', 'B', 'C'];
   container.innerHTML = '';
   return letters.map((letter) => {
     const row = document.createElement('div');
@@ -387,7 +387,7 @@ function renderWordRow(lessonId, word, wordsPanel, card) {
 }
 
 // ------------------------------------------------------------------
-// SOALAN TEMBAK (Mod Tembak A/B/C/D) - tempat edit BERASINGAN drpd "words"
+// SOALAN TEMBAK (Mod Tembak A/B/C) - tempat edit BERASINGAN drpd "words"
 // ------------------------------------------------------------------
 async function refreshTembakQuestions(lessonId, tembakPanel, card) {
   const list = $('.tembak-questions-list', tembakPanel);
@@ -438,7 +438,7 @@ function renderTembakQuestionRow(lessonId, q, tembakPanel, card) {
     const soalan = soalanInput.value.trim();
     if (!soalan) return alert('Soalan tidak boleh kosong.');
     const options = optionFields.map((f) => ({ text: f.input.value.trim(), correct: f.radio.checked }));
-    if (options.some((o) => !o.text)) return alert('Isikan keempat-empat pilihan A/B/C/D.');
+    if (options.some((o) => !o.text)) return alert('Isikan ketiga-tiga pilihan A/B/C.');
     if (options.filter((o) => o.correct).length !== 1) return alert('Tandakan SATU sahaja pilihan yang betul.');
     try {
       await api(`/${lessonId}/tembak-questions/${q._id}`, { method: 'PUT', body: JSON.stringify({ soalan, options }) });

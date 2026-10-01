@@ -16,7 +16,7 @@ const GameWordSchema = new mongoose.Schema(
   { _id: true, timestamps: false }
 );
 
-// Satu pilihan jawapan (A/B/C/D) bagi satu Soalan Tembak
+// Satu pilihan jawapan (A/B/C) bagi satu Soalan Tembak
 const TembakOptionSchema = new mongoose.Schema(
   {
     text: { type: String, required: true, trim: true },
@@ -25,7 +25,7 @@ const TembakOptionSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// Satu Soalan Tembak (Mod Tembak A/B/C/D) - guru taip sendiri soalan & 4
+// Satu Soalan Tembak (Mod Tembak A/B/C) - guru taip sendiri soalan & 3
 // pilihan jawapan (tandakan yang mana betul). Berasingan drpd "words" sebab
 // mod ini perlukan kawalan penuh guru ke atas kandungan setiap pilihan,
 // bukan dijana rawak drpd senarai perkataan.
@@ -35,8 +35,8 @@ const TembakQuestionSchema = new mongoose.Schema(
     options: {
       type: [TembakOptionSchema],
       validate: {
-        validator: (v) => Array.isArray(v) && v.length === 4 && v.filter((o) => o.correct).length === 1,
-        message: 'Soalan Tembak perlukan tepat 4 pilihan (A/B/C/D) dengan SATU sahaja ditanda betul.',
+        validator: (v) => Array.isArray(v) && v.length === 3 && v.filter((o) => o.correct).length === 1,
+        message: 'Soalan Tembak perlukan tepat 3 pilihan (A/B/C) dengan SATU sahaja ditanda betul.',
       },
     },
   },
@@ -55,7 +55,7 @@ const GameLessonSetSchema = new mongoose.Schema(
       type: [GameWordSchema],
       default: [],
     },
-    // "tembakQuestions" - dipakai oleh Mod Tembak (A/B/C/D) sahaja, tempat
+    // "tembakQuestions" - dipakai oleh Mod Tembak (A/B/C) sahaja, tempat
     // edit BERASINGAN drpd "words" di Panel Guru.
     tembakQuestions: {
       type: [TembakQuestionSchema],

@@ -256,8 +256,8 @@
             <div class="icon-train-body"><div class="icon-train-window"></div><div class="icon-train-window"></div><div class="icon-train-window"></div></div>
             <div class="icon-train-wheel l"></div><div class="icon-train-wheel r"></div>
           </div></div>
-          <div class="mode-name">MOD TEMBAK (A/B/C/D)</div>
-          <div class="mode-desc">Setiap gerabak dilabel A/B/C/D — sasar &amp; "tembak" gerabak dengan jawapan betul menggunakan tapak tangan terbuka.</div>
+          <div class="mode-name">MOD TEMBAK (A/B/C)</div>
+          <div class="mode-desc">Setiap gerabak dilabel A/B/C — sasar &amp; "tembak" gerabak dengan jawapan betul menggunakan tapak tangan terbuka.</div>
         </button>
         <button class="mode-card" data-mode="padan">
           <div class="mode-icon"><div class="icon-switch">
@@ -342,7 +342,7 @@
    API dan boleh diedit di /game-arab-admin.html. Sesuai untuk sebarang
    subjek — bukan terhad kepada Bahasa Arab sahaja.
 
-   3 MOD PERMAINAN: tembak (pilihan A/B/C/D) | padan | isyarat jari
+   3 MOD PERMAINAN: tembak (pilihan A/B/C) | padan | isyarat jari
    ========================================================================= */
 
 // ------------------------------------------------------------------
@@ -363,7 +363,7 @@ const CONFIG = {
   },
   GAME: {
     lockChargeMs: 750,
-    dronesPerRound: 4,              // maksimum 4 drone setiap pusingan = pilihan A/B/C/D
+    dronesPerRound: 3,              // maksimum 3 drone setiap pusingan = pilihan A/B/C
     feedbackDelayMs: 1900,
     maxCombo: 5,
     droneRadius: 92,
@@ -676,14 +676,14 @@ function updateHUD() {
 }
 
 // ------------------------------------------------------------------
-// MOD: TEMBAK (A/B/C/D) - guna "Soalan Tembak" yang guru taip sendiri di
+// MOD: TEMBAK (A/B/C) - guna "Soalan Tembak" yang guru taip sendiri di
 // Panel Guru (currentLesson.tembakQuestions), BUKAN lagi auto-rawak drpd
-// senarai "words". Setiap soalan sudah ada tepat 4 pilihan (A/B/C/D) &
+// senarai "words". Setiap soalan sudah ada tepat 3 pilihan (A/B/C) &
 // satu ditanda betul oleh guru sendiri.
 // ------------------------------------------------------------------
-const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
+const OPTION_LETTERS = ['A', 'B', 'C'];
 // Warna "laluan" MRT bagi setiap huruf pilihan - macam peta laluan keretapi sebenar
-const LINE_COLORS = { A: '#e0272a', B: '#00a651', C: '#0098d8', D: '#f7a81b' };
+const LINE_COLORS = { A: '#e0272a', B: '#00a651', C: '#0098d8' };
 let currentTembakQuestion = null; // soalan semasa yg sedang dipaparkan (Mod Tembak)
 
 function pickTembakQuestion() {
@@ -693,7 +693,7 @@ function pickTembakQuestion() {
 
 function layoutTembakDrones(question) {
   drones = [];
-  const options = question.options; // [{text, correct}] x4, turutan = A/B/C/D
+  const options = question.options; // [{text, correct}] x3, turutan = A/B/C
   const n = options.length;
   const marginX = W * 0.12;
   const usableW = W - marginX * 2;
@@ -705,7 +705,7 @@ function layoutTembakDrones(question) {
     drones.push({
       optionText: opt.text,
       correct: !!opt.correct,
-      letter: OPTION_LETTERS[i] || '?',   // label pilihan A/B/C/D
+      letter: OPTION_LETTERS[i] || '?',   // label pilihan A/B/C
       x, y, baseY: y,
       vx: rand(-14, 14),
       bobPhase: rand(0, Math.PI * 2),
@@ -720,7 +720,7 @@ function layoutTembakDrones(question) {
   els.bannerLabel.textContent = `SOALAN ${currentQuestionNumber()}`;
   els.bannerTarget.textContent = question.soalan;
   els.bannerTarget.classList.remove('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
-  setNova('Cari gerabak A/B/C/D dengan jawapan yang betul.');
+  setNova('Cari gerabak A/B/C dengan jawapan yang betul.');
 }
 
 function nextRound() {
@@ -1074,7 +1074,7 @@ function drawBackground(t) {
   }
   ctx.restore();
 
-  // Partikel cahaya terapung - diwarnakan ikut warna laluan (A/B/C/D) bukan neon cyan/violet seragam
+  // Partikel cahaya terapung - diwarnakan ikut warna laluan (A/B/C) bukan neon cyan/violet seragam
   const dotColors = ['#e0272a', '#00a651', '#0098d8', '#f7a81b'];
   ctx.save();
   for (let i = 0; i < 22; i++) {
@@ -1168,7 +1168,7 @@ function drawDrone(d, t) {
   wrapText(isArabicText ? optText : optText.toUpperCase(), cx, cy, d.radius * 1.7, isArabicText ? 28 : 22);
   ctx.restore();
 
-  // Label pilihan A/B/C/D - bulatan besar di penjuru kiri atas setiap drone.
+  // Label pilihan A/B/C - bulatan besar di penjuru kiri atas setiap drone.
   const bx = cx - d.radius * 0.80, by = cy - d.radius * 0.44;
   ctx.save();
   ctx.globalAlpha = fading ? 0.25 : 1;
@@ -1300,7 +1300,7 @@ function loop(t) {
       updateFingerQuizLogic();
       drawFingerCursor(t);
     } else {
-      // tembak (pilihan A/B/C/D) - sasar & tembak drone yang betul
+      // tembak (pilihan A/B/C) - sasar & tembak drone yang betul
       updateShootModeLogic();
       drones.forEach((d) => drawDrone(d, t));
       drawGauntlet(t);
@@ -1363,7 +1363,7 @@ async function selectModeAndStart(mode) {
   // Sahkan topik ini ada kandungan yg cukup utk mod yg dipilih - Mod Tembak
   // guna tembakQuestions (tempat edit berasingan), Padan/Isyarat guna words.
   if (mode === 'tembak' && (!currentLesson.tembakQuestions || currentLesson.tembakQuestions.length < 1)) {
-    alert('Tiada Soalan Tembak (A/B/C/D) untuk topik ini lagi.\nSila tambah di Panel Guru - seksyen "🎯 Soalan Tembak (A/B/C/D)" dahulu.');
+    alert('Tiada Soalan Tembak (A/B/C) untuk topik ini lagi.\nSila tambah di Panel Guru - seksyen "🎯 Soalan Tembak (A/B/C)" dahulu.');
     return;
   }
   if ((mode === 'padan' || mode === 'isyarat') && (!currentLesson.words || currentLesson.words.length < 2)) {
@@ -1401,7 +1401,7 @@ function startGameSession() {
   masteredIds = new Set();
   if (currentMode === 'padan') startPadanRound();
   else if (currentMode === 'isyarat') startIsyaratRound();
-  else nextRound(); // tembak (A/B/C/D)
+  else nextRound(); // tembak (A/B/C)
 }
 
 function showVictoryModalCommon(wordsLabelText) {

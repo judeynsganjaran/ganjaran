@@ -119,14 +119,14 @@ router.delete('/:id/words/:wordId', async (req, res) => {
 });
 
 // ------------------------------------------------------------------
-// SOALAN TEMBAK (Mod Tembak A/B/C/D) - tempat edit BERASINGAN drpd "words".
-// Setiap soalan ada 4 pilihan (options[0..3] = label A/B/C/D ikut turutan)
+// SOALAN TEMBAK (Mod Tembak A/B/C) - tempat edit BERASINGAN drpd "words".
+// Setiap soalan ada 3 pilihan (options[0..2] = label A/B/C ikut turutan)
 // dengan tepat SATU ditanda correct:true.
 // ------------------------------------------------------------------
 
 function validateOptions(options) {
-  if (!Array.isArray(options) || options.length !== 4) return 'Perlukan tepat 4 pilihan (A/B/C/D).';
-  if (options.some((o) => !o || !String(o.text || '').trim())) return 'Semua 4 pilihan mesti diisi.';
+  if (!Array.isArray(options) || options.length !== 3) return 'Perlukan tepat 3 pilihan (A/B/C).';
+  if (options.some((o) => !o || !String(o.text || '').trim())) return 'Semua 3 pilihan mesti diisi.';
   if (options.filter((o) => o.correct).length !== 1) return 'Tandakan SATU sahaja pilihan yang betul.';
   return null;
 }
