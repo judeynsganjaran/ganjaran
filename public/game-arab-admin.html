@@ -36,6 +36,7 @@
   .lesson-actions { display: flex; gap: 6px; flex-wrap: wrap; }
   .words-panel { margin-top: 14px; border-top: 2px dashed #f0e6da; padding-top: 14px; }
   .add-word-row { display: grid; grid-template-columns: 1fr 1fr 64px auto; gap: 8px; align-items: center; }
+  .add-word-hint { font-size: 12px; color: #9a8a91; margin: 6px 2px 10px; font-weight: 600; }
   .word-count-badge {
     background: var(--purple); color: #fff; font-size: 12px; font-weight: 700;
     padding: 4px 12px; border-radius: 999px; align-self: center;
@@ -110,6 +111,7 @@
         <input class="new-word-icon" placeholder="📦" maxlength="4" style="text-align:center;" />
         <button class="add-word-btn btn btn-success btn-sm">+ Tambah</button>
       </div>
+      <div class="add-word-hint">💡 Taip Soalan &amp; Jawapan, tekan <strong>Enter</strong> untuk terus tambah — tiada had bilangan soalan, tambah seberapa banyak yang anda perlukan untuk aktiviti ini.</div>
     </div>
   </div>
 </template>
@@ -184,16 +186,29 @@ function renderLessonCard(lessonSummary) {
     if (!showing && !loaded) { loaded = true; await refreshWords(lessonSummary._id, wordsPanel, card); }
   });
 
-  $('.add-word-btn', card).addEventListener('click', async () => {
-    const melayu = $('.new-word-melayu', card).value.trim();
-    const arab = $('.new-word-arab', card).value.trim();
-    const icon = $('.new-word-icon', card).value.trim() || '📦';
+  const addWordBtn = $('.add-word-btn', card);
+  const melayuInput = $('.new-word-melayu', card);
+  const arabInput = $('.new-word-arab', card);
+  const iconInput = $('.new-word-icon', card);
+
+  addWordBtn.addEventListener('click', async () => {
+    const melayu = melayuInput.value.trim();
+    const arab = arabInput.value.trim();
+    const icon = iconInput.value.trim() || '📦';
     if (!melayu || !arab) return alert('Isikan Soalan dan Jawapan.');
     try {
       await api(`/${lessonSummary._id}/words`, { method: 'POST', body: JSON.stringify({ melayu, arab, icon }) });
-      $('.new-word-melayu', card).value = ''; $('.new-word-arab', card).value = ''; $('.new-word-icon', card).value = '';
+      melayuInput.value = ''; arabInput.value = ''; iconInput.value = '';
       await refreshWords(lessonSummary._id, wordsPanel, card);
+      melayuInput.focus(); // terus sedia untuk tambah soalan seterusnya - senang untuk banyak soalan
     } catch (err) { alert(err.message); }
+  });
+
+  // Tekan Enter dalam medan Soalan/Jawapan terus tambah - tidak perlu klik butang setiap kali.
+  [melayuInput, arabInput, iconInput].forEach((input) => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); addWordBtn.click(); }
+    });
   });
 
   return card;
@@ -219,12 +234,17 @@ function renderWordRow(lessonId, word, wordsPanel, card) {
   $('.word-arab', row).value = word.arab;
   $('.word-icon', row).value = word.icon || '';
 
-  $('.save-word-btn', row).addEventListener('click', async () => {
+  const saveWordBtn = $('.save-word-btn', row);
+  saveWordBtn.addEventListener('click', async () => {
     const melayu = $('.word-melayu', row).value.trim();
     const arab = $('.word-arab', row).value.trim();
     const icon = $('.word-icon', row).value.trim() || '📦';
     try { await api(`/${lessonId}/words/${word._id}`, { method: 'PUT', body: JSON.stringify({ melayu, arab, icon }) }); flash(row); }
     catch (err) { alert(err.message); }
+  });
+  // Tekan Enter untuk terus simpan perubahan pada soalan ini.
+  [$('.word-melayu', row), $('.word-arab', row), $('.word-icon', row)].forEach((input) => {
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveWordBtn.click(); } });
   });
 
   $('.delete-word-btn', row).addEventListener('click', async () => {
