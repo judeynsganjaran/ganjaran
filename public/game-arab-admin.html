@@ -42,6 +42,36 @@
     padding: 4px 12px; border-radius: 999px; align-self: center;
   }
   .empty-hint { text-align: center; color: #9a8a91; padding: 30px 10px; font-weight: 600; }
+
+  /* ===== SOALAN TEMBAK (Mod Tembak A/B/C/D) - tempat edit BERASINGAN drpd "Perkataan" ===== */
+  .tembak-panel { margin-top: 14px; border-top: 2px dashed #e4d9ff; padding-top: 14px; }
+  .tembak-question-card {
+    background: #F3EEFF; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px;
+    border: 2px solid #E4D9FF;
+  }
+  .tembak-question-card .tq-soalan {
+    width: 100%; padding: 9px 12px; border-radius: 10px; border: 2px solid #eee;
+    font-family: 'Fredoka'; font-size: 15px; font-weight: 700; outline: none; margin-bottom: 10px;
+  }
+  .tembak-question-card .tq-soalan:focus { border-color: var(--purple); }
+  .tq-option-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .tq-option-row input[type="radio"] { width: 19px; height: 19px; flex-shrink: 0; accent-color: #3ECF8E; cursor: pointer; }
+  .tq-option-row .tq-letter {
+    font-family: 'Baloo 2', sans-serif; font-weight: 800; width: 24px; flex-shrink: 0; text-align: center;
+    color: #9a8a91; font-size: 14px;
+  }
+  .tq-option-row input[type="text"] {
+    flex: 1; padding: 7px 10px; border-radius: 8px; border: 2px solid #eee;
+    font-family: 'Fredoka'; font-size: 14px; outline: none;
+  }
+  .tq-option-row input[type="text"]:focus { border-color: var(--pink); }
+  .tq-option-row.is-correct input[type="text"] { border-color: #3ECF8E; background: #F0FFF8; }
+  .tq-option-row.is-correct .tq-letter { color: #3ECF8E; }
+  .tembak-question-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 2px; }
+  .tq-hint-badge {
+    display: inline-block; background: #3ECF8E; color: #fff; font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 999px; margin-left: 6px;
+  }
 </style>
 </head>
 <body>
@@ -63,11 +93,11 @@
   <p class="page-subtitle">Urus topik &amp; kandungan kuiz untuk permainan pengesanan tangan "Ilmuverse Gamebox" — sesuai untuk sebarang subjek (Bahasa Arab, Bahasa Melayu, Pendidikan Islam, dll). Perubahan di sini terus dipaparkan dalam permainan.</p>
 
   <div class="card" style="background:#FFF3DC; border:2px solid #FFD98E; margin-bottom:18px;">
-    <strong>ℹ️ 1 senarai sahaja untuk SEMUA mod.</strong>
-    Setiap topik hanya ada <strong>satu</strong> senarai "Perkataan/Istilah + Maksud" di bawah. Senarai yang sama ini
-    <strong>auto digunakan oleh ketiga-tiga mod permainan</strong> — Mod Tembak (A/B/C/D), Mod Padan &amp; Mod Isyarat Jari —
-    sistem permainan sendiri yang jana soalan/pilihan secara rawak setiap kali main. Anda <strong>tidak perlu</strong> set
-    pilihan A/B/C/D atau pasangan padanan secara berasingan di tempat lain.
+    <strong>ℹ️ Setiap topik ada 2 tempat edit berasingan:</strong>
+    <div style="margin-top:8px; display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+      <div>🎯 <strong>Soalan Tembak (A/B/C/D)</strong><br>Untuk <strong>Mod Tembak</strong> sahaja. Taip soalan sendiri + taip sendiri 4 pilihan jawapan + tandakan yang betul — kawalan penuh di tangan guru.</div>
+      <div>🔗 <strong>Perkataan</strong><br>Untuk <strong>Mod Padan</strong> &amp; <strong>Mod Isyarat Jari</strong> sahaja. Senarai perkataan+maksud — permainan auto padan/jana pilihan sendiri.</div>
+    </div>
   </div>
 
   <div style="margin: -10px 0 22px;">
@@ -105,13 +135,16 @@
       </div>
       <div class="lesson-actions">
         <span class="word-count-badge"></span>
+        <span class="tembak-count-badge" style="background:#8B5CF6; color:#fff; font-size:12px; font-weight:700; padding:4px 12px; border-radius:999px; align-self:center;"></span>
         <button class="save-lesson-btn btn btn-secondary btn-sm">💾 Simpan</button>
-        <button class="toggle-words-btn btn btn-outline btn-sm">📖 Perkataan</button>
+        <button class="toggle-words-btn btn btn-outline btn-sm">🔗 Perkataan (Padan/Isyarat)</button>
+        <button class="toggle-tembak-btn btn btn-outline btn-sm">🎯 Soalan Tembak (A/B/C/D)</button>
         <button class="delete-lesson-btn btn btn-danger btn-sm">🗑️ Padam</button>
       </div>
     </div>
 
     <div class="words-panel" style="display:none;">
+      <div class="add-word-hint" style="margin:0 2px 10px;">🔗 Tempat edit untuk <strong>Mod Padan</strong> &amp; <strong>Mod Isyarat Jari</strong> sahaja. Permainan auto padan/jana pilihan drpd senarai ini.</div>
       <div class="add-word-row" style="margin-bottom:4px;">
         <div style="font-size:12px; font-weight:700; color:#9a8a91;">PERKATAAN / ISTILAH</div>
         <div style="font-size:12px; font-weight:700; color:#9a8a91;">MAKSUD / JAWAPAN</div>
@@ -125,7 +158,21 @@
         <input class="new-word-icon" placeholder="📦" maxlength="4" style="text-align:center;" />
         <button class="add-word-btn btn btn-success btn-sm">+ Tambah</button>
       </div>
-      <div class="add-word-hint">💡 Taip Perkataan &amp; Maksud, tekan <strong>Enter</strong> untuk terus tambah — tiada had bilangan, tambah seberapa banyak yang anda perlukan. Setiap baris ini auto terpakai untuk Mod Tembak, Mod Padan &amp; Mod Isyarat Jari sekali gus.</div>
+      <div class="add-word-hint">💡 Taip Perkataan &amp; Maksud, tekan <strong>Enter</strong> untuk terus tambah — tiada had bilangan, tambah seberapa banyak yang anda perlukan.</div>
+    </div>
+
+    <div class="tembak-panel" style="display:none;">
+      <div class="add-word-hint" style="margin:0 2px 10px;">🎯 Tempat edit untuk <strong>Mod Tembak (A/B/C/D)</strong> sahaja. Taip soalan sendiri, taip sendiri 4 pilihan jawapan, &amp; tandakan (⚪) yang mana betul.</div>
+      <div class="tembak-questions-list"></div>
+
+      <div class="tembak-question-card tembak-new-form">
+        <input class="new-tq-soalan tq-soalan" placeholder="Taip soalan di sini... (cth: Apakah maksud 'قِطَّة'?)" />
+        <div class="new-tq-options"></div>
+        <div class="tembak-question-actions">
+          <button class="add-tq-btn btn btn-success btn-sm">+ Tambah Soalan</button>
+        </div>
+      </div>
+      <div class="add-word-hint">💡 Isi Soalan, isi keempat-empat pilihan A/B/C/D, tandakan satu yang betul, tekan <strong>Tambah Soalan</strong>. Tiada had bilangan soalan.</div>
     </div>
   </div>
 </template>
@@ -175,6 +222,7 @@ function renderLessonCard(lessonSummary) {
   $('.lesson-name', card).value = lessonSummary.name;
   $('.lesson-desc', card).value = lessonSummary.description || '';
   $('.word-count-badge', card).textContent = `${lessonSummary.wordCount} perkataan`;
+  $('.tembak-count-badge', card).textContent = `${lessonSummary.tembakQuestionCount || 0} soalan tembak`;
 
   $('.save-lesson-btn', card).addEventListener('click', async () => {
     const name = $('.lesson-name', card).value.trim();
@@ -225,7 +273,75 @@ function renderLessonCard(lessonSummary) {
     });
   });
 
+  // ----- Panel "Soalan Tembak (A/B/C/D)" - tempat edit BERASINGAN -----
+  const tembakPanel = $('.tembak-panel', card);
+  const toggleTembakBtn = $('.toggle-tembak-btn', card);
+  let tembakLoaded = false;
+  toggleTembakBtn.addEventListener('click', async () => {
+    const showing = tembakPanel.style.display !== 'none';
+    tembakPanel.style.display = showing ? 'none' : 'block';
+    toggleTembakBtn.textContent = showing ? '🎯 Soalan Tembak (A/B/C/D)' : '🎯 Tutup';
+    if (!showing && !tembakLoaded) { tembakLoaded = true; await refreshTembakQuestions(lessonSummary._id, tembakPanel, card); }
+  });
+
+  // Borang "+ Tambah Soalan" (sentiasa ada, letak bawah senarai soalan sedia ada)
+  const newTqSoalan = $('.new-tq-soalan', card);
+  const newTqOptionsWrap = $('.new-tq-options', card);
+  const addTqBtn = $('.add-tq-btn', card);
+  const newOptionFields = buildOptionRows(newTqOptionsWrap, `new-tq-correct-${lessonSummary._id}`);
+  // Pilihan A ditanda betul secara lalai supaya guru sentiasa ada 1 jawapan ditanda.
+  newOptionFields[0].radio.checked = true;
+  newOptionFields[0].row.classList.add('is-correct');
+
+  addTqBtn.addEventListener('click', async () => {
+    const soalan = newTqSoalan.value.trim();
+    if (!soalan) return alert('Soalan tidak boleh kosong.');
+    const options = newOptionFields.map((f) => ({ text: f.input.value.trim(), correct: f.radio.checked }));
+    if (options.some((o) => !o.text)) return alert('Isikan keempat-empat pilihan A/B/C/D.');
+    try {
+      await api(`/${lessonSummary._id}/tembak-questions`, { method: 'POST', body: JSON.stringify({ soalan, options }) });
+      newTqSoalan.value = '';
+      newOptionFields.forEach((f, i) => { f.input.value = ''; f.radio.checked = i === 0; f.row.classList.toggle('is-correct', i === 0); });
+      await refreshTembakQuestions(lessonSummary._id, tembakPanel, card);
+      newTqSoalan.focus(); // terus sedia utk tambah soalan seterusnya
+    } catch (err) { alert(err.message); }
+  });
+  // Tekan Enter dalam medan soalan/pilihan terus tambah soalan.
+  [newTqSoalan, ...newOptionFields.map((f) => f.input)].forEach((input) => {
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addTqBtn.click(); } });
+  });
+
   return card;
+}
+
+// Bina 4 baris pilihan (radio "betul" + label A/B/C/D + input teks) di dalam
+// `container`. groupName mesti unik supaya radio button saling eksklusif
+// dalam SATU soalan sahaja (bukan across soalan lain / kad topik lain).
+function buildOptionRows(container, groupName) {
+  const letters = ['A', 'B', 'C', 'D'];
+  container.innerHTML = '';
+  return letters.map((letter) => {
+    const row = document.createElement('div');
+    row.className = 'tq-option-row';
+
+    const radio = document.createElement('input');
+    radio.type = 'radio'; radio.name = groupName;
+
+    const letterSpan = document.createElement('span');
+    letterSpan.className = 'tq-letter'; letterSpan.textContent = letter;
+
+    const input = document.createElement('input');
+    input.type = 'text'; input.placeholder = `Pilihan ${letter}`;
+
+    radio.addEventListener('change', () => {
+      container.querySelectorAll('.tq-option-row').forEach((r) => r.classList.remove('is-correct'));
+      row.classList.add('is-correct');
+    });
+
+    row.appendChild(radio); row.appendChild(letterSpan); row.appendChild(input);
+    container.appendChild(row);
+    return { row, radio, input };
+  });
 }
 
 async function refreshWords(lessonId, wordsPanel, card) {
@@ -268,6 +384,81 @@ function renderWordRow(lessonId, word, wordsPanel, card) {
   });
 
   return row;
+}
+
+// ------------------------------------------------------------------
+// SOALAN TEMBAK (Mod Tembak A/B/C/D) - tempat edit BERASINGAN drpd "words"
+// ------------------------------------------------------------------
+async function refreshTembakQuestions(lessonId, tembakPanel, card) {
+  const list = $('.tembak-questions-list', tembakPanel);
+  list.innerHTML = '<div style="opacity:.6; font-size:14px;">Memuatkan...</div>';
+  try {
+    const lesson = await api(`/${lessonId}`);
+    list.innerHTML = '';
+    if (!lesson.tembakQuestions.length) {
+      list.innerHTML = '<div style="opacity:.6; font-size:14px; padding:4px 2px 14px;">Tiada Soalan Tembak lagi. Tambah satu di bawah. 🎯</div>';
+    } else {
+      lesson.tembakQuestions.forEach((q) => list.appendChild(renderTembakQuestionRow(lessonId, q, tembakPanel, card)));
+    }
+    $('.tembak-count-badge', card).textContent = `${lesson.tembakQuestions.length} soalan tembak`;
+  } catch (err) {
+    list.innerHTML = `<div style="color:#FF6B6B; font-size:14px;">${err.message}</div>`;
+  }
+}
+
+function renderTembakQuestionRow(lessonId, q, tembakPanel, card) {
+  const wrap = document.createElement('div');
+  wrap.className = 'tembak-question-card';
+
+  const soalanInput = document.createElement('input');
+  soalanInput.className = 'tq-soalan';
+  soalanInput.placeholder = 'Taip soalan di sini...';
+  soalanInput.value = q.soalan;
+  wrap.appendChild(soalanInput);
+
+  const optsWrap = document.createElement('div');
+  wrap.appendChild(optsWrap);
+  const optionFields = buildOptionRows(optsWrap, `tq-correct-${q._id}`);
+  q.options.forEach((o, i) => {
+    optionFields[i].input.value = o.text;
+    optionFields[i].radio.checked = !!o.correct;
+    optionFields[i].row.classList.toggle('is-correct', !!o.correct);
+  });
+
+  const actions = document.createElement('div');
+  actions.className = 'tembak-question-actions';
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'save-tq-btn btn btn-secondary btn-sm'; saveBtn.textContent = '💾 Simpan';
+  const delBtn = document.createElement('button');
+  delBtn.className = 'delete-tq-btn btn btn-danger btn-sm'; delBtn.textContent = '🗑️ Padam';
+  actions.appendChild(saveBtn); actions.appendChild(delBtn);
+  wrap.appendChild(actions);
+
+  saveBtn.addEventListener('click', async () => {
+    const soalan = soalanInput.value.trim();
+    if (!soalan) return alert('Soalan tidak boleh kosong.');
+    const options = optionFields.map((f) => ({ text: f.input.value.trim(), correct: f.radio.checked }));
+    if (options.some((o) => !o.text)) return alert('Isikan keempat-empat pilihan A/B/C/D.');
+    if (options.filter((o) => o.correct).length !== 1) return alert('Tandakan SATU sahaja pilihan yang betul.');
+    try {
+      await api(`/${lessonId}/tembak-questions/${q._id}`, { method: 'PUT', body: JSON.stringify({ soalan, options }) });
+      flash(wrap);
+    } catch (err) { alert(err.message); }
+  });
+  // Tekan Enter terus simpan perubahan pada soalan ini.
+  [soalanInput, ...optionFields.map((f) => f.input)].forEach((input) => {
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveBtn.click(); } });
+  });
+
+  delBtn.addEventListener('click', async () => {
+    if (!confirm('Padam soalan ini?')) return;
+    try {
+      await api(`/${lessonId}/tembak-questions/${q._id}`, { method: 'DELETE' });
+      await refreshTembakQuestions(lessonId, tembakPanel, card);
+    } catch (err) { alert(err.message); }
+  });
+
+  return wrap;
 }
 
 function flash(el) {

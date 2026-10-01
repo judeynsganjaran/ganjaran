@@ -9,12 +9,13 @@ const GameLessonSet = require('../models/GameLessonSet');
 // GET /api/game-lessons - senarai ringkas semua set pelajaran (skrin pilih misi)
 router.get('/', async (req, res) => {
   try {
-    const lessons = await GameLessonSet.find({}, 'name description words').sort({ createdAt: 1 });
+    const lessons = await GameLessonSet.find({}, 'name description words tembakQuestions').sort({ createdAt: 1 });
     const summary = lessons.map((l) => ({
       _id: l._id,
       name: l.name,
       description: l.description,
       wordCount: l.words.length,
+      tembakQuestionCount: l.tembakQuestions.length,
     }));
     res.json(summary);
   } catch (err) {
@@ -114,6 +115,76 @@ router.delete('/:id/words/:wordId', async (req, res) => {
     res.json(lesson);
   } catch (err) {
     res.status(400).json({ error: 'Gagal padam perkataan.', detail: err.message });
+  }
+});
+
+// ------------------------------------------------------------------
+// SOALAN TEMBAK (Mod Tembak A/B/C/D) - tempat edit BERASINGAN drpd "words".
+// Setiap soalan ada 4 pilihan (options[0..3] = label A/B/C/D ikut turutan)
+// dengan tepat SATU ditanda correct:true.
+// ------------------------------------------------------------------
+
+function validateOptions(options) {
+  if (!Array.isArray(options) || options.length !== 4) return 'Perlukan tepat 4 pilihan (A/B/C/D).';
+  if (options.some((o) => !o || !String(o.text || '').trim())) return 'Semua 4 pilihan mesti diisi.';
+  if (options.filter((o) => o.correct).length !== 1) return 'Tandakan SATU sahaja pilihan yang betul.';
+  return null;
+}
+
+// POST /api/game-lessons/:id/tembak-questions - tambah satu Soalan Tembak
+router.post('/:id/tembak-questions', async (req, res) => {
+  try {
+    const { soalan, options } = req.body;
+    if (!soalan || !soalan.trim()) return res.status(400).json({ error: 'Soalan diperlukan.' });
+    const optErr = validateOptions(options);
+    if (optErr) return res.status(400).json({ error: optErr });
+    const lesson = await GameLessonSet.findById(req.params.id);
+    if (!lesson) return res.status(404).json({ error: 'Set pelajaran tidak dijumpai.' });
+    lesson.tembakQuestions.push({
+      soalan: soalan.trim(),
+      options: options.map((o) => ({ text: o.text.trim(), correct: !!o.correct })),
+    });
+    await lesson.save();
+    res.status(201).json(lesson);
+  } catch (err) {
+    res.status(400).json({ error: 'Gagal tambah Soalan Tembak.', detail: err.message });
+  }
+});
+
+// PUT /api/game-lessons/:id/tembak-questions/:qId - edit satu Soalan Tembak
+router.put('/:id/tembak-questions/:qId', async (req, res) => {
+  try {
+    const { soalan, options } = req.body;
+    const lesson = await GameLessonSet.findById(req.params.id);
+    if (!lesson) return res.status(404).json({ error: 'Set pelajaran tidak dijumpai.' });
+    const q = lesson.tembakQuestions.id(req.params.qId);
+    if (!q) return res.status(404).json({ error: 'Soalan Tembak tidak dijumpai.' });
+    if (options !== undefined) {
+      const optErr = validateOptions(options);
+      if (optErr) return res.status(400).json({ error: optErr });
+      q.options = options.map((o) => ({ text: o.text.trim(), correct: !!o.correct }));
+    }
+    if (soalan !== undefined) {
+      if (!soalan.trim()) return res.status(400).json({ error: 'Soalan diperlukan.' });
+      q.soalan = soalan.trim();
+    }
+    await lesson.save();
+    res.json(lesson);
+  } catch (err) {
+    res.status(400).json({ error: 'Gagal kemaskini Soalan Tembak.', detail: err.message });
+  }
+});
+
+// DELETE /api/game-lessons/:id/tembak-questions/:qId - padam satu Soalan Tembak
+router.delete('/:id/tembak-questions/:qId', async (req, res) => {
+  try {
+    const lesson = await GameLessonSet.findById(req.params.id);
+    if (!lesson) return res.status(404).json({ error: 'Set pelajaran tidak dijumpai.' });
+    lesson.tembakQuestions.id(req.params.qId).deleteOne();
+    await lesson.save();
+    res.json(lesson);
+  } catch (err) {
+    res.status(400).json({ error: 'Gagal padam Soalan Tembak.', detail: err.message });
   }
 });
 

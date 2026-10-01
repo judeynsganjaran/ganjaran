@@ -52,6 +52,15 @@
     backdrop-filter: blur(10px);
     box-shadow: 0 0 25px rgba(0,152,216,.12), inset 0 0 30px rgba(138,148,166,.08);
   }
+  /* Teks soalan/sasaran atas - saiz fon auto mengecil & dihad 2 baris supaya
+     soalan panjang (terutama Soalan Tembak yang guru taip sendiri) TIDAK
+     tutup gerabak/pilihan jawapan di bawahnya, walau sepanjang mana pun. */
+  .banner-target-text{
+    font-size: clamp(1rem, 2.6vw, 1.9rem);
+    line-height: 1.25;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; word-break: break-word;
+  }
   .glow-cyan{ text-shadow: 0 0 8px var(--cyber-cyan), 0 0 18px rgba(0,152,216,.6); }
   .glow-violet{ text-shadow: 0 0 8px var(--violet), 0 0 18px rgba(224,39,42,.55); }
   .glow-amber{ text-shadow: 0 0 8px var(--amber), 0 0 18px rgba(247,168,27,.6); }
@@ -182,9 +191,9 @@
     </div>
 
     <!-- Top Center: instruction banner -->
-    <div class="fixed top-3 left-1/2 -translate-x-1/2 glass rounded-2xl px-8 py-4 text-center min-w-[260px]">
+    <div class="fixed top-3 left-1/2 -translate-x-1/2 glass rounded-2xl px-6 py-3 text-center" style="max-width:min(640px,92vw);">
       <div id="bannerLabel" class="font-orbitron text-sm md:text-base font-bold tracking-widest text-violet-300/80">SASARAN</div>
-      <div id="bannerTarget" class="font-orbitron text-3xl md:text-5xl font-black glow-violet font-arabic">—</div>
+      <div id="bannerTarget" class="font-orbitron font-black glow-violet font-arabic banner-target-text">—</div>
     </div>
 
     <!-- Top Right: score / combo -->
@@ -429,7 +438,6 @@ let lostSince = 0;
 let roundBusy = false;         // true while resolving a shot / showing feedback
 let shakeFrames = 0;
 let beamFx = null;             // {from:{x,y}, to:{x,y}, life}
-let missionType = 'A';         // 'A' = cari perkataan sasaran, 'B' = kenal maksud
 let mpCamera = null;
 let handsModel = null;
 let videoMetrics = { vw: 1, vh: 1, scale: 1, sw: 1, sh: 1, sx: 0, sy: 0 };
@@ -524,8 +532,11 @@ async function loadLessonList() {
     lessons.forEach((l) => {
       const opt = document.createElement('option');
       opt.value = l._id;
-      opt.textContent = `${l.name} (${l.wordCount} item)`;
-      if (l.wordCount === 0) opt.disabled = true;
+      const parts = [];
+      if (l.wordCount > 0) parts.push(`${l.wordCount} perkataan`);
+      if (l.tembakQuestionCount > 0) parts.push(`${l.tembakQuestionCount} soalan tembak`);
+      opt.textContent = `${l.name} (${parts.length ? parts.join(', ') : 'kosong'})`;
+      if (l.wordCount === 0 && l.tembakQuestionCount === 0) opt.disabled = true;
       els.lessonSelect.appendChild(opt);
     });
     els.lessonStatus.textContent = 'Pilih topik dan tekan SETERUSNYA.';
@@ -624,26 +635,40 @@ function stopCamera() {
 // ------------------------------------------------------------------
 // PERKATAAN / KEMAJUAN (dikongsi oleh semua mod)
 // ------------------------------------------------------------------
+// Mod Padan & Mod Isyarat Jari guna "words"; Mod Tembak guna "tembakQuestions"
+// (lihat nota berasingan di Panel Guru). activePool() pulangkan senarai yg
+// betul ikut currentMode supaya progress/HUD sentiasa tepat utk mod semasa.
+function activePool() {
+  return currentMode === 'tembak'
+    ? (currentLesson.tembakQuestions || [])
+    : (currentLesson.words || []);
+}
+
 function remainingWords() {
   return currentLesson.words.filter((w) => !masteredIds.has(w._id));
 }
 
+// Dipakai oleh Mod Tembak (remainingWords() di atas kekal utk Padan/Isyarat)
+function remainingPool() {
+  return activePool().filter((item) => !masteredIds.has(item._id));
+}
+
 // Nombor soalan semasa (1-based) - dipaparkan di panel "SOALAN n - STESEN ..."
 function currentQuestionNumber() {
-  const total = currentLesson.words.length;
+  const total = activePool().length;
   return Math.min(masteredIds.size + 1, total);
 }
 
 function updateHUD() {
   els.hudScore.textContent = score;
   els.hudCombo.textContent = '×' + combo;
-  const total = currentLesson.words.length;
+  const total = activePool().length;
   const done = masteredIds.size;
   els.progressLabel.textContent = `MISI ${done}/${total}`;
   els.progressDots.innerHTML = '';
-  currentLesson.words.forEach((w) => {
+  activePool().forEach((item) => {
     const dot = document.createElement('span');
-    dot.className = 'node-dot' + (masteredIds.has(w._id) ? ' done' : '');
+    dot.className = 'node-dot' + (masteredIds.has(item._id) ? ' done' : '');
     els.progressDots.appendChild(dot);
   });
   // Panel "pengumuman" bawah kini papar nombor soalan + nama stesen (topik) semasa
@@ -651,36 +676,35 @@ function updateHUD() {
 }
 
 // ------------------------------------------------------------------
-// MOD: TEMBAK / LAWAN MASA / INGAT (berkongsi mekanik sasar+tembak)
+// MOD: TEMBAK (A/B/C/D) - guna "Soalan Tembak" yang guru taip sendiri di
+// Panel Guru (currentLesson.tembakQuestions), BUKAN lagi auto-rawak drpd
+// senarai "words". Setiap soalan sudah ada tepat 4 pilihan (A/B/C/D) &
+// satu ditanda betul oleh guru sendiri.
 // ------------------------------------------------------------------
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 // Warna "laluan" MRT bagi setiap huruf pilihan - macam peta laluan keretapi sebenar
 const LINE_COLORS = { A: '#e0272a', B: '#00a651', C: '#0098d8', D: '#f7a81b' };
+let currentTembakQuestion = null; // soalan semasa yg sedang dipaparkan (Mod Tembak)
 
-function pickRoundWords() {
-  const pool = remainingWords();
-  const targetWord = pool[Math.floor(Math.random() * pool.length)];
-  const others = currentLesson.words.filter((w) => w._id !== targetWord._id);
-  const decoyCount = Math.min(CONFIG.GAME.dronesPerRound - 1, others.length);
-  const decoys = shuffle(others).slice(0, decoyCount);
-  const all = shuffle([...decoys, targetWord]);
-  return { targetWord, all };
+function pickTembakQuestion() {
+  const pool = remainingPool();
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
-function layoutDrones(list, target) {
+function layoutTembakDrones(question) {
   drones = [];
-  const n = list.length;
+  const options = question.options; // [{text, correct}] x4, turutan = A/B/C/D
+  const n = options.length;
   const marginX = W * 0.12;
   const usableW = W - marginX * 2;
-  missionType = Math.random() < 0.5 ? 'A' : 'B';
 
-  list.forEach((w, i) => {
+  options.forEach((opt, i) => {
     const slotW = usableW / n;
     const x = marginX + slotW * i + slotW / 2 + rand(-slotW * 0.15, slotW * 0.15);
     const y = rand(H * 0.27, H * 0.55); // jarak ekstra dari panel SOALAN atas supaya tak bertindih
     drones.push({
-      word: w,
-      correct: w._id === target._id,
+      optionText: opt.text,
+      correct: !!opt.correct,
       letter: OPTION_LETTERS[i] || '?',   // label pilihan A/B/C/D
       x, y, baseY: y,
       vx: rand(-14, 14),
@@ -691,25 +715,19 @@ function layoutDrones(list, target) {
   });
 
   // Label banner atas dipendekkan kepada "SOALAN n" sahaja (bukan ayat arahan
-  // panjang) supaya tak makan ruang & tak berisiko tutup gerabak/pilihan jawapan
-  // di bawahnya. Arahan penuh terus di panel "PENGUMUMAN" bawah.
+  // panjang) & teks soalan sendiri dikecilkan/dihad baris (lihat .banner-target-text)
+  // supaya soalan panjang tak tutup gerabak/pilihan jawapan di bawahnya.
   els.bannerLabel.textContent = `SOALAN ${currentQuestionNumber()}`;
-  if (missionType === 'A') {
-    els.bannerTarget.textContent = target.melayu.toUpperCase();
-    els.bannerTarget.classList.remove('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
-    setNova(`Cari gerabak A/B/C/D dengan jawapan untuk: ${target.melayu.toUpperCase()}.`);
-  } else {
-    els.bannerTarget.textContent = target.arab;
-    els.bannerTarget.classList.add('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
-    setNova('Cari gerabak A/B/C/D dengan maksud yang betul.');
-  }
+  els.bannerTarget.textContent = question.soalan;
+  els.bannerTarget.classList.remove('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
+  setNova('Cari gerabak A/B/C/D dengan jawapan yang betul.');
 }
 
 function nextRound() {
   roundBusy = false;
   lockTarget = null;
-  const { targetWord, all } = pickRoundWords();
-  layoutDrones(all, targetWord);
+  currentTembakQuestion = pickTembakQuestion();
+  layoutTembakDrones(currentTembakQuestion);
   updateHUD();
 }
 
@@ -723,8 +741,8 @@ function resolveShot(hitDrone) {
     score += 100 * combo;
     combo = Math.min(CONFIG.GAME.maxCombo, combo + 1);
     maxComboReached = Math.max(maxComboReached, combo);
-    masteredIds.add(hitDrone.word._id);
-    setNova(`Bagus! ${hitDrone.letter}. ${hitDrone.word.arab} = ${hitDrone.word.melayu.toUpperCase()}`);
+    masteredIds.add(currentTembakQuestion._id);
+    setNova(`Bagus! ${hitDrone.letter}. ${hitDrone.optionText}`);
     els.bannerLabel.textContent = 'BETUL!';
   } else {
     missedShots++;
@@ -733,7 +751,7 @@ function resolveShot(hitDrone) {
     shakeFrames = 14;
     combo = 1;
     const correctDrone = drones.find((d) => d.correct);
-    setNova(`Cuba lagi. Jawapan betul ialah ${correctDrone.letter}. ${correctDrone.word.arab} = ${correctDrone.word.melayu}.`);
+    setNova(`Cuba lagi. Jawapan betul ialah ${correctDrone.letter}. ${correctDrone.optionText}`);
     els.bannerLabel.textContent = 'BUKAN SASARAN';
   }
   updateHUD();
@@ -742,7 +760,7 @@ function resolveShot(hitDrone) {
 
   setTimeout(() => {
     drones = [];
-    if (remainingWords().length === 0) showVictory(); else nextRound();
+    if (remainingPool().length === 0) showVictory(); else nextRound();
   }, CONFIG.GAME.feedbackDelayMs);
 }
 
@@ -1138,19 +1156,16 @@ function drawDrone(d, t) {
     ctx.fillStyle = lineColor; ctx.fill();
   });
 
+  // Teks pilihan (d.optionText) - guru taip sendiri, boleh Melayu/Arab/bahasa lain.
+  // Auto kesan skrip Arab utk arah teks + fon yang sesuai (bukan lagi bergantung
+  // pada missionType sejak Mod Tembak guna Soalan Tembak berstruktur).
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  const showArabic = missionType === 'A';
-  if (showArabic) {
-    ctx.direction = 'rtl';
-    ctx.font = '700 38px "Noto Naskh Arabic", serif';
-    ctx.fillStyle = '#f5f7fa'; ctx.shadowColor = lineColor; ctx.shadowBlur = 10;
-    ctx.fillText(d.word.arab, cx, cy);
-  } else {
-    ctx.direction = 'ltr';
-    ctx.font = '800 20px Kanit, sans-serif';
-    ctx.fillStyle = '#f5f7fa'; ctx.shadowColor = lineColor; ctx.shadowBlur = 8;
-    wrapText(d.word.melayu.toUpperCase(), cx, cy, d.radius * 1.7, 22);
-  }
+  const optText = d.optionText || '';
+  const isArabicText = /[؀-ۿݐ-ݿ]/.test(optText);
+  ctx.direction = isArabicText ? 'rtl' : 'ltr';
+  ctx.font = isArabicText ? '700 26px "Noto Naskh Arabic", serif' : '800 19px Kanit, sans-serif';
+  ctx.fillStyle = '#f5f7fa'; ctx.shadowColor = lineColor; ctx.shadowBlur = isArabicText ? 10 : 8;
+  wrapText(isArabicText ? optText : optText.toUpperCase(), cx, cy, d.radius * 1.7, isArabicText ? 28 : 22);
   ctx.restore();
 
   // Label pilihan A/B/C/D - bulatan besar di penjuru kiri atas setiap drone.
@@ -1324,9 +1339,11 @@ async function chooseLesson(lessonId) {
   els.loadingBar.style.width = '30%';
   try {
     currentLesson = await loadLessonDetail(lessonId);
-    if (!currentLesson.words || currentLesson.words.length < 2) {
+    const hasWords = currentLesson.words && currentLesson.words.length >= 2;
+    const hasTembak = currentLesson.tembakQuestions && currentLesson.tembakQuestions.length >= 1;
+    if (!hasWords && !hasTembak) {
       hideModal(els.loadingModal);
-      els.lessonStatus.textContent = 'Set pelajaran ini perlu sekurang-kurangnya 2 perkataan. Sila tambah di /game-arab-admin.html.';
+      els.lessonStatus.textContent = 'Set pelajaran ini belum ada kandungan. Sila tambah Perkataan atau Soalan Tembak di /game-arab-admin.html.';
       showModal(els.startModal);
       return;
     }
@@ -1343,6 +1360,16 @@ async function chooseLesson(lessonId) {
 }
 
 async function selectModeAndStart(mode) {
+  // Sahkan topik ini ada kandungan yg cukup utk mod yg dipilih - Mod Tembak
+  // guna tembakQuestions (tempat edit berasingan), Padan/Isyarat guna words.
+  if (mode === 'tembak' && (!currentLesson.tembakQuestions || currentLesson.tembakQuestions.length < 1)) {
+    alert('Tiada Soalan Tembak (A/B/C/D) untuk topik ini lagi.\nSila tambah di Panel Guru - seksyen "🎯 Soalan Tembak (A/B/C/D)" dahulu.');
+    return;
+  }
+  if ((mode === 'padan' || mode === 'isyarat') && (!currentLesson.words || currentLesson.words.length < 2)) {
+    alert('Tiada cukup Perkataan untuk topik ini (perlu sekurang-kurangnya 2).\nSila tambah di Panel Guru - seksyen "🔗 Perkataan (Padan/Isyarat)" dahulu.');
+    return;
+  }
   currentMode = mode;
   hideModal(els.modeModal);
   showModal(els.loadingModal);
@@ -1395,21 +1422,33 @@ function showVictoryModalCommon(wordsLabelText) {
 }
 
 function showVictory() {
-  const total = currentLesson.words.length;
+  const total = activePool().length;
   showVictoryModalCommon(`${total}/${total}`);
 }
 
 function buildReviewList() {
   els.reviewList.innerHTML = '';
-  currentLesson.words.forEach((w) => {
-    const row = document.createElement('div');
-    row.className = 'glass rounded-lg px-4 py-3 flex items-center justify-between';
-    row.innerHTML = `
-      <span class="font-arabic text-2xl font-bold" dir="auto">${w.arab}</span>
-      <span class="text-2xl">${w.icon || ''}</span>
-      <span class="font-kanit text-lg font-bold text-cyan-200">${w.melayu}</span>`;
-    els.reviewList.appendChild(row);
-  });
+  if (currentMode === 'tembak') {
+    currentLesson.tembakQuestions.forEach((q) => {
+      const correctOpt = q.options.find((o) => o.correct);
+      const row = document.createElement('div');
+      row.className = 'glass rounded-lg px-4 py-3';
+      row.innerHTML = `
+        <div class="font-kanit text-base font-bold text-slate-100 mb-1" dir="auto">${q.soalan}</div>
+        <div class="font-kanit text-sm font-semibold" style="color:#00e68a;" dir="auto">✓ ${correctOpt ? correctOpt.text : '—'}</div>`;
+      els.reviewList.appendChild(row);
+    });
+  } else {
+    currentLesson.words.forEach((w) => {
+      const row = document.createElement('div');
+      row.className = 'glass rounded-lg px-4 py-3 flex items-center justify-between';
+      row.innerHTML = `
+        <span class="font-arabic text-2xl font-bold" dir="auto">${w.arab}</span>
+        <span class="text-2xl">${w.icon || ''}</span>
+        <span class="font-kanit text-lg font-bold text-cyan-200">${w.melayu}</span>`;
+      els.reviewList.appendChild(row);
+    });
+  }
 }
 
 // ------------------------------------------------------------------
