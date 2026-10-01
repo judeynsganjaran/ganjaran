@@ -169,28 +169,18 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <button class="mode-card" data-mode="tembak">
           <div class="mode-icon">🎯</div>
-          <div class="mode-name">MOD TEMBAK</div>
-          <div class="mode-desc">Sasar &amp; tembak drone yang ada jawapan betul menggunakan tapak tangan terbuka.</div>
+          <div class="mode-name">MOD TEMBAK (A/B/C/D)</div>
+          <div class="mode-desc">Setiap drone dilabel A/B/C/D — sasar &amp; tembak drone dengan jawapan betul menggunakan tapak tangan terbuka.</div>
         </button>
         <button class="mode-card" data-mode="padan">
           <div class="mode-icon">🔗</div>
           <div class="mode-name">MOD PADAN</div>
           <div class="mode-desc">Cubit (ibu jari + telunjuk) untuk tarik &amp; sambung pasangan soalan-jawapan yang betul.</div>
         </button>
-        <button class="mode-card" data-mode="isyarat">
+        <button class="mode-card sm:col-span-2" data-mode="isyarat">
           <div class="mode-icon">🖐️</div>
           <div class="mode-name">MOD ISYARAT JARI</div>
           <div class="mode-desc">Jawab kuiz 4 pilihan dengan tunjuk bilangan jari (1-4). Sesuai kuiz seluruh kelas!</div>
-        </button>
-        <button class="mode-card" data-mode="masa">
-          <div class="mode-icon">⏱️</div>
-          <div class="mode-name">MOD LAWAN MASA</div>
-          <div class="mode-desc">Jawab sebanyak mungkin dalam 60 saat. Perkataan boleh berulang.</div>
-        </button>
-        <button class="mode-card sm:col-span-2" data-mode="ingat">
-          <div class="mode-icon">🧠</div>
-          <div class="mode-name">MOD INGAT</div>
-          <div class="mode-desc">Perkataan dipaparkan sekejap pada drone, kemudian tersembunyi — ingat kedudukannya &amp; sasar drone yang betul.</div>
         </button>
       </div>
       <div class="text-center mt-5">
@@ -259,7 +249,7 @@
    API dan boleh diedit di /game-arab-admin.html. Sesuai untuk sebarang
    subjek — bukan terhad kepada Bahasa Arab sahaja.
 
-   5 MOD PERMAINAN: tembak | padan | isyarat | masa | ingat
+   3 MOD PERMAINAN: tembak (pilihan A/B/C/D) | padan | isyarat jari
    ========================================================================= */
 
 // ------------------------------------------------------------------
@@ -280,12 +270,10 @@ const CONFIG = {
   },
   GAME: {
     lockChargeMs: 750,
-    dronesPerRound: 4,
+    dronesPerRound: 4,              // maksimum 4 drone setiap pusingan = pilihan A/B/C/D
     feedbackDelayMs: 1900,
     maxCombo: 5,
     droneRadius: 92,
-    timeAttackSeconds: 60,         // Mod Lawan Masa
-    memoryRevealMs: 2200,          // Mod Ingat - tempoh perkataan ditunjuk sebelum tersembunyi
     fingerHoldMs: 800,             // Mod Isyarat Jari - tempoh perlu stabil sebelum jawapan dikunci
   },
   MATCH: {
@@ -339,7 +327,7 @@ const ctx = els.canvas.getContext('2d');
 let W = 0, H = 0;
 
 let currentLesson = null;      // { _id, name, description, words:[{_id,melayu,arab,icon}] }
-let currentMode = 'tembak';    // 'tembak' | 'padan' | 'isyarat' | 'masa' | 'ingat'
+let currentMode = 'tembak';    // 'tembak' | 'padan' | 'isyarat'
 let masteredIds = new Set();
 let drones = [];
 let particles = [];
@@ -357,8 +345,6 @@ let roundBusy = false;         // true while resolving a shot / showing feedback
 let shakeFrames = 0;
 let beamFx = null;             // {from:{x,y}, to:{x,y}, life}
 let missionType = 'A';         // 'A' = cari perkataan sasaran, 'B' = kenal maksud
-let revealUntil = 0;           // Mod Ingat - masa (ms) sehingga perkataan tersembunyi
-let timeAttackEndAt = 0;       // Mod Lawan Masa - masa tamat
 let mpCamera = null;
 let handsModel = null;
 let videoMetrics = { vw: 1, vh: 1, scale: 1, sw: 1, sh: 1, sx: 0, sy: 0 };
@@ -479,7 +465,9 @@ function fingerExtended(lm, tipIdx, pipIdx) {
   const wrist = lm[0];
   const dTip = dist(wrist.x, wrist.y, lm[tipIdx].x, lm[tipIdx].y);
   const dPip = dist(wrist.x, wrist.y, lm[pipIdx].x, lm[pipIdx].y);
-  return dTip > dPip * 1.08;
+  // Nisbah dilonggarkan sedikit (1.08 -> 1.03) supaya jari yang separuh
+  // terbuka / tangan serong sikit pada kamera masih dikesan dengan betul.
+  return dTip > dPip * 1.03;
 }
 
 function onHandsResults(results) {
@@ -558,32 +546,24 @@ function remainingWords() {
 function updateHUD() {
   els.hudScore.textContent = score;
   els.hudCombo.textContent = '×' + combo;
-  if (currentMode === 'masa') {
-    const remainSec = Math.max(0, Math.ceil((timeAttackEndAt - performance.now()) / 1000));
-    els.progressLabel.textContent = `⏱ MASA BAKI: ${remainSec}s  •  BETUL: ${correctHits}`;
-    els.progressDots.innerHTML = '';
-  } else {
-    const total = currentLesson.words.length;
-    const done = masteredIds.size;
-    els.progressLabel.textContent = `MISI ${done}/${total}`;
-    els.progressDots.innerHTML = '';
-    currentLesson.words.forEach((w) => {
-      const dot = document.createElement('span');
-      dot.className = 'node-dot' + (masteredIds.has(w._id) ? ' done' : '');
-      els.progressDots.appendChild(dot);
-    });
-  }
-}
-function updateMasaTimerDisplay() {
-  const remainSec = Math.max(0, Math.ceil((timeAttackEndAt - performance.now()) / 1000));
-  els.progressLabel.textContent = `⏱ MASA BAKI: ${remainSec}s  •  BETUL: ${correctHits}`;
+  const total = currentLesson.words.length;
+  const done = masteredIds.size;
+  els.progressLabel.textContent = `MISI ${done}/${total}`;
+  els.progressDots.innerHTML = '';
+  currentLesson.words.forEach((w) => {
+    const dot = document.createElement('span');
+    dot.className = 'node-dot' + (masteredIds.has(w._id) ? ' done' : '');
+    els.progressDots.appendChild(dot);
+  });
 }
 
 // ------------------------------------------------------------------
 // MOD: TEMBAK / LAWAN MASA / INGAT (berkongsi mekanik sasar+tembak)
 // ------------------------------------------------------------------
+const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
+
 function pickRoundWords() {
-  const pool = currentMode === 'masa' ? currentLesson.words : remainingWords();
+  const pool = remainingWords();
   const targetWord = pool[Math.floor(Math.random() * pool.length)];
   const others = currentLesson.words.filter((w) => w._id !== targetWord._id);
   const decoyCount = Math.min(CONFIG.GAME.dronesPerRound - 1, others.length);
@@ -592,12 +572,12 @@ function pickRoundWords() {
   return { targetWord, all };
 }
 
-function layoutDrones(list, target, forceMissionType) {
+function layoutDrones(list, target) {
   drones = [];
   const n = list.length;
   const marginX = W * 0.12;
   const usableW = W - marginX * 2;
-  missionType = forceMissionType || (Math.random() < 0.5 ? 'A' : 'B');
+  missionType = Math.random() < 0.5 ? 'A' : 'B';
 
   list.forEach((w, i) => {
     const slotW = usableW / n;
@@ -606,6 +586,7 @@ function layoutDrones(list, target, forceMissionType) {
     drones.push({
       word: w,
       correct: w._id === target._id,
+      letter: OPTION_LETTERS[i] || '?',   // label pilihan A/B/C/D
       x, y, baseY: y,
       vx: rand(-14, 14),
       bobPhase: rand(0, Math.PI * 2),
@@ -615,25 +596,23 @@ function layoutDrones(list, target, forceMissionType) {
   });
 
   if (missionType === 'A') {
-    els.bannerLabel.textContent = 'SASARAN';
+    els.bannerLabel.textContent = 'SASARAN — PILIH A/B/C/D';
     els.bannerTarget.textContent = target.melayu.toUpperCase();
     els.bannerTarget.classList.remove('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
-    setNova(`SASARAN: ${target.melayu.toUpperCase()}. Cari drone dengan jawapan yang betul.`);
+    setNova(`SASARAN: ${target.melayu.toUpperCase()}. Tembak drone berlabel A/B/C/D dengan jawapan yang betul.`);
   } else {
-    els.bannerLabel.textContent = 'APAKAH MAKSUD PERKATAAN INI?';
+    els.bannerLabel.textContent = 'APAKAH MAKSUD PERKATAAN INI? — PILIH A/B/C/D';
     els.bannerTarget.textContent = target.arab;
     els.bannerTarget.classList.add('font-arabic'); els.bannerTarget.setAttribute('dir', 'auto');
-    setNova('Apakah maksud perkataan ini? Cari drone dengan maksud yang betul.');
+    setNova('Apakah maksud perkataan ini? Tembak drone berlabel A/B/C/D dengan maksud yang betul.');
   }
-
-  if (currentMode === 'ingat') revealUntil = performance.now() + CONFIG.GAME.memoryRevealMs;
 }
 
 function nextRound() {
   roundBusy = false;
   lockTarget = null;
   const { targetWord, all } = pickRoundWords();
-  layoutDrones(all, targetWord, currentMode === 'ingat' ? 'A' : undefined);
+  layoutDrones(all, targetWord);
   updateHUD();
 }
 
@@ -648,7 +627,7 @@ function resolveShot(hitDrone) {
     combo = Math.min(CONFIG.GAME.maxCombo, combo + 1);
     maxComboReached = Math.max(maxComboReached, combo);
     masteredIds.add(hitDrone.word._id);
-    setNova(`Bagus! ${hitDrone.word.arab} = ${hitDrone.word.melayu.toUpperCase()}`);
+    setNova(`Bagus! ${hitDrone.letter}. ${hitDrone.word.arab} = ${hitDrone.word.melayu.toUpperCase()}`);
     els.bannerLabel.textContent = 'BETUL!';
   } else {
     missedShots++;
@@ -657,7 +636,7 @@ function resolveShot(hitDrone) {
     shakeFrames = 14;
     combo = 1;
     const correctDrone = drones.find((d) => d.correct);
-    setNova(`Cuba lagi. Sasaran yang betul ialah ${correctDrone.word.arab} = ${correctDrone.word.melayu}.`);
+    setNova(`Cuba lagi. Jawapan betul ialah ${correctDrone.letter}. ${correctDrone.word.arab} = ${correctDrone.word.melayu}.`);
     els.bannerLabel.textContent = 'BUKAN SASARAN';
   }
   updateHUD();
@@ -666,13 +645,7 @@ function resolveShot(hitDrone) {
 
   setTimeout(() => {
     drones = [];
-    if (currentMode === 'masa') {
-      if (performance.now() < timeAttackEndAt) nextRound(); else endTimeAttack();
-    } else if (remainingWords().length === 0) {
-      showVictory();
-    } else {
-      nextRound();
-    }
+    if (remainingWords().length === 0) showVictory(); else nextRound();
   }, CONFIG.GAME.feedbackDelayMs);
 }
 
@@ -708,15 +681,6 @@ function updateShootModeLogic() {
   } else if (lockTarget) {
     lockTarget = null;
   }
-}
-
-function startTimeAttack() {
-  timeAttackEndAt = performance.now() + CONFIG.GAME.timeAttackSeconds * 1000;
-  nextRound();
-}
-
-function endTimeAttack() {
-  showVictoryModalCommon(`${correctHits} jawapan betul`);
 }
 
 // ------------------------------------------------------------------
@@ -858,8 +822,11 @@ function updateQuizProgress(activeIdx, pct) {
 
 function updateFingerQuizLogic() {
   if (roundBusy) return;
+  // PENTING: guna fingerCount mentah (1-4) sahaja - JANGAN syaratkan "openPalm"
+  // (openPalm perlukan >=3 jari terbuka, jadi pilihan 1 & 2 tak akan pernah
+  // dikesan jika disyaratkan). Cuma perlu tangan dikesan dalam kamera (rawPalm).
   const count = fingerCount;
-  if (count >= 1 && count <= 4 && openPalm) {
+  if (rawPalm && count >= 1 && count <= 4) {
     if (quizHoldCount !== count) { quizHoldCount = count; quizHoldStart = performance.now(); }
     const held = performance.now() - quizHoldStart;
     updateQuizProgress(count - 1, clamp(held / CONFIG.GAME.fingerHoldMs, 0, 1));
@@ -932,9 +899,9 @@ function drawParticles() {
 // LUKISAN — latar, drone, gauntlet, reticle
 // ------------------------------------------------------------------
 function drawBackground(t) {
-  // Lapisan gelap dikurangkan supaya kamera/muka murid kekal jelas kelihatan.
+  // Lapisan gelap dicerahkan lagi (nipis sahaja) supaya kamera/muka murid sentiasa jelas kelihatan.
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, 'rgba(6,10,24,0.18)'); g.addColorStop(1, 'rgba(3,5,14,0.28)');
+  g.addColorStop(0, 'rgba(6,10,24,0.08)'); g.addColorStop(1, 'rgba(3,5,14,0.14)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 
   ctx.save(); ctx.globalAlpha = 0.06; ctx.strokeStyle = '#22e3f5'; ctx.lineWidth = 1;
@@ -964,8 +931,8 @@ function drawVideoCover() {
   ctx.translate(W, 0); ctx.scale(-1, 1);
   ctx.drawImage(els.video, videoMetrics.sx, videoMetrics.sy, videoMetrics.sw, videoMetrics.sh, 0, 0, W, H);
   ctx.restore();
-  // Lapisan gelap nipis sahaja - hanya untuk kontras teks HUD, bukan untuk sembunyikan muka.
-  ctx.save(); ctx.globalAlpha = 0.10; ctx.fillStyle = '#050a18'; ctx.fillRect(0, 0, W, H); ctx.restore();
+  // Lapisan gelap dikurangkan ke paling minimum - hanya sentuhan kontras halus, bukan untuk sembunyikan muka.
+  ctx.save(); ctx.globalAlpha = 0.04; ctx.fillStyle = '#050a18'; ctx.fillRect(0, 0, W, H); ctx.restore();
 }
 
 function drawDrone(d, t) {
@@ -1004,27 +971,33 @@ function drawDrone(d, t) {
     ctx.fillStyle = 'rgba(34,227,245,0.8)'; ctx.fill();
   });
 
-  const memoryHidden = currentMode === 'ingat' && performance.now() > revealUntil;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  if (memoryHidden) {
-    ctx.direction = 'ltr';
-    ctx.font = '800 42px Kanit, sans-serif';
-    ctx.fillStyle = '#94a3b8'; ctx.shadowColor = '#8b5cf6'; ctx.shadowBlur = 8;
-    ctx.fillText('❓', cx, cy);
+  const showArabic = missionType === 'A';
+  if (showArabic) {
+    ctx.direction = 'rtl';
+    ctx.font = '700 38px "Noto Naskh Arabic", serif';
+    ctx.fillStyle = '#e6fbff'; ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 10;
+    ctx.fillText(d.word.arab, cx, cy);
   } else {
-    const showArabic = missionType === 'A';
-    if (showArabic) {
-      ctx.direction = 'rtl';
-      ctx.font = '700 38px "Noto Naskh Arabic", serif';
-      ctx.fillStyle = '#e6fbff'; ctx.shadowColor = '#22e3f5'; ctx.shadowBlur = 10;
-      ctx.fillText(d.word.arab, cx, cy);
-    } else {
-      ctx.direction = 'ltr';
-      ctx.font = '800 20px Kanit, sans-serif';
-      ctx.fillStyle = '#e6fbff'; ctx.shadowColor = '#8b5cf6'; ctx.shadowBlur = 8;
-      wrapText(d.word.melayu.toUpperCase(), cx, cy, d.radius * 1.7, 22);
-    }
+    ctx.direction = 'ltr';
+    ctx.font = '800 20px Kanit, sans-serif';
+    ctx.fillStyle = '#e6fbff'; ctx.shadowColor = '#8b5cf6'; ctx.shadowBlur = 8;
+    wrapText(d.word.melayu.toUpperCase(), cx, cy, d.radius * 1.7, 22);
   }
+  ctx.restore();
+
+  // Label pilihan A/B/C/D - bulatan besar di penjuru kiri atas setiap drone.
+  const bx = cx - d.radius * 0.80, by = cy - d.radius * 0.44;
+  ctx.save();
+  ctx.globalAlpha = fading ? 0.25 : 1;
+  ctx.beginPath(); ctx.arc(bx, by, 24, 0, 7);
+  ctx.fillStyle = d.hit ? (d.correct ? '#22e3f5' : '#ef4444') : '#f59e0b';
+  ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 14;
+  ctx.fill();
+  ctx.strokeStyle = '#04060c'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#04060c'; ctx.font = '900 24px Orbitron, sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr';
+  ctx.fillText(d.letter, bx, by + 1);
   ctx.restore();
 
   if (isTargeted && !roundBusy) {
@@ -1145,12 +1118,11 @@ function loop(t) {
       updateFingerQuizLogic();
       drawFingerCursor(t);
     } else {
-      // tembak / masa / ingat - berkongsi mekanik sasar & tembak
+      // tembak (pilihan A/B/C/D) - sasar & tembak drone yang betul
       updateShootModeLogic();
       drones.forEach((d) => drawDrone(d, t));
       drawGauntlet(t);
       drawBeam(t);
-      if (currentMode === 'masa') updateMasaTimerDisplay();
     }
   }
 
@@ -1235,8 +1207,7 @@ function startGameSession() {
   masteredIds = new Set();
   if (currentMode === 'padan') startPadanRound();
   else if (currentMode === 'isyarat') startIsyaratRound();
-  else if (currentMode === 'masa') startTimeAttack();
-  else nextRound(); // tembak / ingat
+  else nextRound(); // tembak (A/B/C/D)
 }
 
 function showVictoryModalCommon(wordsLabelText) {

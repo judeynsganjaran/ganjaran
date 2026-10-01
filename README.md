@@ -8,7 +8,7 @@ Sistem ganjaran interaktif untuk guru prasekolah — Leaderboard bintang + stick
 - **Leaderboard Murid** — senarai murid dengan bintang besar + tahap semasa + sticker unlock, **carian nama (scroll + kelip automatik)**, tambah/kurang bintang **serta-merta tanpa delay**
 - **Spin Wheel** — tekan pada gambar untuk spin, animasi rawak gempak + skrin penuh
 - **Hadiah** — urus poster hadiah besar & sticker untuk setiap tahap bintang
-- **🎮 Ilmuverse Gamebox** — kuiz interaktif pengesanan tangan (hand-tracking, MediaPipe) dengan **5 mod permainan** (Tembak, Padan, Isyarat Jari, Lawan Masa, Ingat); boleh guna untuk **sebarang subjek** (bukan Bahasa Arab sahaja), kandungan pelajaran (topik & senarai soalan/jawapan) boleh diedit terus di Panel Guru tanpa ubah kod
+- **🎮 Ilmuverse Gamebox** — kuiz interaktif pengesanan tangan (hand-tracking, MediaPipe) dengan **3 mod permainan** (Tembak A/B/C/D, Padan, Isyarat Jari); boleh guna untuk **sebarang subjek** (bukan Bahasa Arab sahaja), kandungan pelajaran (topik & senarai soalan/jawapan) boleh diedit terus di Panel Guru tanpa ubah kod
 
 ## 🛠️ Teknologi
 - Backend: Node.js + Express
@@ -95,16 +95,14 @@ git push
 
 Kuiz pendidikan interaktif berasaskan pengesanan tangan (MediaPipe Hands) —
 sesuai untuk sebarang subjek (Bahasa Arab, Bahasa Melayu, Pendidikan Islam,
-dsb). Murid pilih topik, kemudian pilih salah satu daripada **5 mod
+dsb). Murid pilih topik, kemudian pilih salah satu daripada **3 mod
 permainan**:
 
 | Mod | Cara main |
 |---|---|
-| 🎯 **Tembak** | Sasar & "tembak" drone yang membawa jawapan betul dengan tapak tangan terbuka |
+| 🎯 **Tembak (A/B/C/D)** | Setiap drone dilabel A/B/C/D — sasar & "tembak" drone berlabel yang membawa jawapan betul dengan tapak tangan terbuka |
 | 🔗 **Padan** | Cubit (ibu jari + telunjuk rapat) kad soalan, tarik & sambung ke jawapan yang betul |
 | 🖐️ **Isyarat Jari** | Kuiz 4 pilihan — jawab dengan tunjuk & tahan bilangan jari (1-4) |
-| ⏱️ **Lawan Masa** | Jawab sebanyak mungkin dalam 60 saat (perkataan boleh berulang) |
-| 🧠 **Ingat** | Perkataan pada drone dipaparkan sekejap, kemudian tersembunyi — ingat kedudukannya |
 
 1. Breadcrumb **🎮 Ilmuverse Gamebox** → buka permainan (`/game-arab.html`),
    pilih topik → pilih mod. Perlukan kebenaran kamera & sambungan
@@ -138,7 +136,7 @@ project/
 ├── scripts/seedGameLessons.js
 └── public/
     ├── index.html / kelas.html / kumpulan.html / leaderboard.html / spin.html / hadiah.html
-    ├── game-arab.html        # Ilmuverse Gamebox - kuiz hand-tracking (5 mod)
+    ├── game-arab.html        # Ilmuverse Gamebox - kuiz hand-tracking (3 mod)
     ├── game-arab-admin.html  # Panel Guru - edit kandungan Ilmuverse Gamebox
     ├── css/style.css
     └── js/          # termasuk site.js (papar nama/logo laman di semua halaman)
