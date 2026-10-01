@@ -62,6 +62,14 @@
   <h1 class="page-title">🎮 Ilmuverse Gamebox — Panel Guru</h1>
   <p class="page-subtitle">Urus topik &amp; kandungan kuiz untuk permainan pengesanan tangan "Ilmuverse Gamebox" — sesuai untuk sebarang subjek (Bahasa Arab, Bahasa Melayu, Pendidikan Islam, dll). Perubahan di sini terus dipaparkan dalam permainan.</p>
 
+  <div class="card" style="background:#FFF3DC; border:2px solid #FFD98E; margin-bottom:18px;">
+    <strong>ℹ️ 1 senarai sahaja untuk SEMUA mod.</strong>
+    Setiap topik hanya ada <strong>satu</strong> senarai "Perkataan/Istilah + Maksud" di bawah. Senarai yang sama ini
+    <strong>auto digunakan oleh ketiga-tiga mod permainan</strong> — Mod Tembak (A/B/C/D), Mod Padan &amp; Mod Isyarat Jari —
+    sistem permainan sendiri yang jana soalan/pilihan secara rawak setiap kali main. Anda <strong>tidak perlu</strong> set
+    pilihan A/B/C/D atau pasangan padanan secara berasingan di tempat lain.
+  </div>
+
   <div style="margin: -10px 0 22px;">
     <a href="/game-arab.html" class="btn btn-purple">🎮 Buka Permainan</a>
   </div>
@@ -104,14 +112,20 @@
     </div>
 
     <div class="words-panel" style="display:none;">
+      <div class="add-word-row" style="margin-bottom:4px;">
+        <div style="font-size:12px; font-weight:700; color:#9a8a91;">PERKATAAN / ISTILAH</div>
+        <div style="font-size:12px; font-weight:700; color:#9a8a91;">MAKSUD / JAWAPAN</div>
+        <div style="font-size:12px; font-weight:700; color:#9a8a91; text-align:center;">IKON</div>
+        <div></div>
+      </div>
       <div class="words-list"></div>
       <div class="add-word-row">
-        <input class="new-word-melayu" placeholder="Soalan / Istilah" />
-        <input class="new-word-arab arab-input" placeholder="Jawapan / Maksud" dir="auto" />
+        <input class="new-word-melayu" placeholder="cth: Kucing" />
+        <input class="new-word-arab arab-input" placeholder="cth: قِطَّة" dir="auto" />
         <input class="new-word-icon" placeholder="📦" maxlength="4" style="text-align:center;" />
         <button class="add-word-btn btn btn-success btn-sm">+ Tambah</button>
       </div>
-      <div class="add-word-hint">💡 Taip Soalan &amp; Jawapan, tekan <strong>Enter</strong> untuk terus tambah — tiada had bilangan soalan, tambah seberapa banyak yang anda perlukan untuk aktiviti ini.</div>
+      <div class="add-word-hint">💡 Taip Perkataan &amp; Maksud, tekan <strong>Enter</strong> untuk terus tambah — tiada had bilangan, tambah seberapa banyak yang anda perlukan. Setiap baris ini auto terpakai untuk Mod Tembak, Mod Padan &amp; Mod Isyarat Jari sekali gus.</div>
     </div>
   </div>
 </template>
