@@ -40,18 +40,17 @@
     box-shadow: 0 0 10px rgba(255,204,0,.45);
   }
 
+  /* NOTA: .glass SENGAJA tidak diberi position:relative/absolute - banyak panel HUD
+     guna class Tailwind "fixed" bersama "glass" (cth: class="fixed top-3 ... glass ...").
+     Jalur warna laluan dilukis guna lapisan background sahaja supaya "position:fixed"
+     panel tersebut tidak terjejas langsung (tiada konflik cascade dgn Tailwind). */
   .glass{
-    position:relative; overflow:hidden;
-    background:linear-gradient(135deg, rgba(20,24,34,.62), rgba(10,13,20,.8));
+    background:
+      linear-gradient(90deg, var(--line-a) 0 25%, var(--line-b) 25% 50%, var(--line-c) 50% 75%, var(--line-d) 75% 100%) top left / 100% 4px no-repeat,
+      linear-gradient(135deg, rgba(20,24,34,.62), rgba(10,13,20,.8));
     border:1px solid rgba(138,148,166,.4);
     backdrop-filter: blur(10px);
     box-shadow: 0 0 25px rgba(0,152,216,.12), inset 0 0 30px rgba(138,148,166,.08);
-  }
-  /* Setiap panel "glass" ada jalur peta-laluan di bahagian atas - identiti MRT tanpa emoji */
-  .glass::before{
-    content:''; position:absolute; top:0; left:0; right:0; height:4px;
-    background: linear-gradient(90deg, var(--line-a) 0 25%, var(--line-b) 25% 50%, var(--line-c) 50% 75%, var(--line-d) 75% 100%);
-    opacity:.85;
   }
   .glow-cyan{ text-shadow: 0 0 8px var(--cyber-cyan), 0 0 18px rgba(0,152,216,.6); }
   .glow-violet{ text-shadow: 0 0 8px var(--violet), 0 0 18px rgba(224,39,42,.55); }
