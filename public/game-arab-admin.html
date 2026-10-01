@@ -43,6 +43,14 @@
   }
   .empty-hint { text-align: center; color: #9a8a91; padding: 30px 10px; font-weight: 600; }
 
+  /* ===== Import Excel (.xlsx) pukal - muat turun templat + muat naik ===== */
+  .xlsx-import-bar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin: 0 2px 12px; padding: 8px 10px; background: #F0F7FF; border-radius: 10px;
+    border: 1.5px dashed #BFDBFE;
+  }
+  .xlsx-import-status { font-size: 12px; font-weight: 700; color: #4b9b6e; }
+
   /* ===== SOALAN TEMBAK (Mod Tembak A/B/C) - tempat edit BERASINGAN drpd "Perkataan" ===== */
   .tembak-panel { margin-top: 14px; border-top: 2px dashed #e4d9ff; padding-top: 14px; }
   .tembak-question-card {
@@ -145,6 +153,12 @@
 
     <div class="words-panel" style="display:none;">
       <div class="add-word-hint" style="margin:0 2px 10px;">🔗 Tempat edit untuk <strong>Mod Padan</strong> &amp; <strong>Mod Isyarat Jari</strong> sahaja. Permainan auto padan/jana pilihan drpd senarai ini.</div>
+      <div class="xlsx-import-bar">
+        <a href="/templates/templat-perkataan.xlsx" download class="btn btn-outline btn-sm">📥 Muat Turun Templat</a>
+        <button type="button" class="import-words-btn btn btn-secondary btn-sm">📤 Muat Naik Excel (ramai sekali gus)</button>
+        <input type="file" class="import-words-file" accept=".xlsx" style="display:none;">
+        <span class="import-words-status xlsx-import-status"></span>
+      </div>
       <div class="add-word-row" style="margin-bottom:4px;">
         <div style="font-size:12px; font-weight:700; color:#9a8a91;">PERKATAAN / ISTILAH</div>
         <div style="font-size:12px; font-weight:700; color:#9a8a91;">MAKSUD / JAWAPAN</div>
@@ -163,6 +177,12 @@
 
     <div class="tembak-panel" style="display:none;">
       <div class="add-word-hint" style="margin:0 2px 10px;">🎯 Tempat edit untuk <strong>Mod Tembak (A/B/C)</strong> sahaja. Taip soalan sendiri, taip sendiri 3 pilihan jawapan, &amp; tandakan (⚪) yang mana betul.</div>
+      <div class="xlsx-import-bar">
+        <a href="/templates/templat-soalan-tembak.xlsx" download class="btn btn-outline btn-sm">📥 Muat Turun Templat</a>
+        <button type="button" class="import-tembak-btn btn btn-secondary btn-sm">📤 Muat Naik Excel (ramai sekali gus)</button>
+        <input type="file" class="import-tembak-file" accept=".xlsx" style="display:none;">
+        <span class="import-tembak-status xlsx-import-status"></span>
+      </div>
       <div class="tembak-questions-list"></div>
 
       <div class="tembak-question-card tembak-new-form">
@@ -273,6 +293,16 @@ function renderLessonCard(lessonSummary) {
     });
   });
 
+  // ----- Import Excel (.xlsx) pukal - Perkataan (lebih laju drpd taip satu-satu) -----
+  wireXlsxImport({
+    uploadBtn: $('.import-words-btn', card),
+    fileInput: $('.import-words-file', card),
+    statusEl: $('.import-words-status', card),
+    uploadPath: `/${lessonSummary._id}/words/import-xlsx`,
+    itemLabel: 'perkataan',
+    onDone: () => refreshWords(lessonSummary._id, wordsPanel, card),
+  });
+
   // ----- Panel "Soalan Tembak (A/B/C)" - tempat edit BERASINGAN -----
   const tembakPanel = $('.tembak-panel', card);
   const toggleTembakBtn = $('.toggle-tembak-btn', card);
@@ -311,7 +341,52 @@ function renderLessonCard(lessonSummary) {
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addTqBtn.click(); } });
   });
 
+  // ----- Import Excel (.xlsx) pukal - Soalan Tembak (lebih laju drpd taip satu-satu) -----
+  wireXlsxImport({
+    uploadBtn: $('.import-tembak-btn', card),
+    fileInput: $('.import-tembak-file', card),
+    statusEl: $('.import-tembak-status', card),
+    uploadPath: `/${lessonSummary._id}/tembak-questions/import-xlsx`,
+    itemLabel: 'soalan',
+    onDone: () => refreshTembakQuestions(lessonSummary._id, tembakPanel, card),
+  });
+
   return card;
+}
+
+// Pasang kelakuan "Muat Naik Excel (.xlsx)" pukal - dikongsi oleh Perkataan &
+// Soalan Tembak (bezanya cuma lokasi API & label). Klik butang -> buka
+// pemilih fail -> upload terus (FormData, bukan JSON) -> papar ringkasan
+// hasil (berapa ditambah / baris dilangkau) -> muat semula senarai.
+function wireXlsxImport({ uploadBtn, fileInput, statusEl, uploadPath, itemLabel, onDone }) {
+  uploadBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    statusEl.style.color = '#4b9b6e';
+    statusEl.textContent = '⏳ Memuat naik...';
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(API + uploadPath, { method: 'POST', body: fd }); // JANGAN set Content-Type - browser perlu tetapkan boundary multipart sendiri
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Ralat muat naik.');
+      let msg = `✅ ${data.added} ${itemLabel} ditambah`;
+      if (data.skipped) msg += `, ${data.skipped} baris kosong dilangkau`;
+      if (data.rowErrors && data.rowErrors.length) msg += `, ⚠️ ${data.rowErrors.length} baris ada ralat`;
+      statusEl.textContent = msg + '.';
+      if (data.rowErrors && data.rowErrors.length) {
+        alert('Sebahagian baris dilangkau sebab ada ralat:\n\n' + data.rowErrors.join('\n') + '\n\nBetulkan baris berkenaan dalam Excel & muat naik semula fail itu sahaja.');
+      }
+      await onDone();
+    } catch (err) {
+      statusEl.style.color = '#FF6B6B';
+      statusEl.textContent = '';
+      alert(err.message);
+    } finally {
+      fileInput.value = ''; // reset supaya boleh pilih fail yg sama semula jika perlu
+    }
+  });
 }
 
 // Bina 3 baris pilihan (radio "betul" + label A/B/C + input teks) di dalam

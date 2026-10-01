@@ -26,5 +26,22 @@ function toDataUri(file) {
   return `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
 }
 
+// Muat naik templat Excel (.xlsx) - guna utk ciri "Import Excel" Ilmuverse
+// Gamebox (Panel Guru), supaya guru boleh tambah banyak perkataan/soalan
+// sekali gus drpd taip satu-satu. Disemak ikut sambungan fail (bukan
+// mime-type sahaja, sebab sesetengah browser hantar mime generik utk xlsx).
+const xlsxFileFilter = (req, file, cb) => {
+  const extOk = /\.xlsx$/i.test(file.originalname || '');
+  if (extOk) return cb(null, true);
+  cb(new Error('Hanya fail Excel (.xlsx) dibenarkan'));
+};
+
+const uploadXlsx = multer({
+  storage,
+  fileFilter: xlsxFileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB - cukup besar utk ratusan baris
+});
+
 module.exports = upload;
 module.exports.toDataUri = toDataUri;
+module.exports.uploadXlsx = uploadXlsx;
