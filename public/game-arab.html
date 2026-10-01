@@ -207,8 +207,7 @@
     <!-- Bottom: progress + AI NOVA -->
     <div class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[min(760px,96vw)] flex flex-col items-center gap-2">
       <div class="glass rounded-2xl px-5 py-2.5 w-full text-center">
-        <div class="font-orbitron text-sm md:text-base font-bold tracking-widest text-cyan-300/80" id="progressLabel">MISI 0/0</div>
-        <div id="progressDots" class="flex flex-wrap gap-2 justify-center mt-2"></div>
+        <div id="progressDots" class="flex flex-wrap gap-2 justify-center"></div>
       </div>
       <div class="glass rounded-2xl px-5 py-3 w-full">
         <div id="novaLabel" class="font-orbitron text-sm font-bold tracking-widest text-violet-300/80">PENGUMUMAN STESEN</div>
@@ -401,7 +400,6 @@ const els = {
   hudLessonName: document.getElementById('hudLessonName'),
   bannerLabel: document.getElementById('bannerLabel'),
   bannerTarget: document.getElementById('bannerTarget'),
-  progressLabel: document.getElementById('progressLabel'),
   progressDots: document.getElementById('progressDots'),
   novaText: document.getElementById('novaText'),
   novaLabel: document.getElementById('novaLabel'),
@@ -662,9 +660,6 @@ function currentQuestionNumber() {
 function updateHUD() {
   els.hudScore.textContent = score;
   els.hudCombo.textContent = '×' + combo;
-  const total = activePool().length;
-  const done = masteredIds.size;
-  els.progressLabel.textContent = `MISI ${done}/${total}`;
   els.progressDots.innerHTML = '';
   activePool().forEach((item) => {
     const dot = document.createElement('span');
@@ -698,10 +693,19 @@ function layoutTembakDrones(question) {
   const marginX = W * 0.12;
   const usableW = W - marginX * 2;
 
+  // Had atas/bawah kawasan selamat utk letak gerabak - guna PIKSEL TETAP
+  // (bukan peratus H semata-mata), sbb panel SOALAN (atas) & panel
+  // PENGUMUMAN/progress (bawah) tinggi tetap dlm piksel & TAK skala ikut
+  // tinggi skrin. Pada skrin rendah (cth. tetingkap browser tak penuh
+  // skrin), peratus semata2 boleh buat gerabak terbenam/bertindih dgn
+  // panel soalan - disahkan dgn ukur getBoundingClientRect() sebenar.
+  const droneSafeTop = 266;   // px drpd atas - jarak selamat drpd panel SOALAN
+  const droneSafeBottom = Math.max(droneSafeTop + 60, H - 266); // px drpd bawah - jarak selamat drpd panel bawah
+
   options.forEach((opt, i) => {
     const slotW = usableW / n;
     const x = marginX + slotW * i + slotW / 2 + rand(-slotW * 0.15, slotW * 0.15);
-    const y = rand(H * 0.27, H * 0.55); // jarak ekstra dari panel SOALAN atas supaya tak bertindih
+    const y = rand(droneSafeTop, droneSafeBottom);
     drones.push({
       optionText: opt.text,
       correct: !!opt.correct,
@@ -731,6 +735,16 @@ function nextRound() {
   updateHUD();
 }
 
+// Jawapan SALAH -> ulang soalan yg SAMA (bukan soalan baharu) sampai guru/
+// murid jawab betul. Gerabak A/B/C dibina semula utk soalan semasa sahaja -
+// currentTembakQuestion & masteredIds TIDAK diubah di sini.
+function retryTembakRound() {
+  roundBusy = false;
+  lockTarget = null;
+  layoutTembakDrones(currentTembakQuestion);
+  updateHUD();
+}
+
 function resolveShot(hitDrone) {
   roundBusy = true;
   lockTarget = null;
@@ -750,8 +764,9 @@ function resolveShot(hitDrone) {
     spawnShield(hitDrone.x, hitDrone.y);
     shakeFrames = 14;
     combo = 1;
-    const correctDrone = drones.find((d) => d.correct);
-    setNova(`Cuba lagi. Jawapan betul ialah ${correctDrone.letter}. ${correctDrone.optionText}`);
+    // Jangan dedah jawapan betul - murid ulang cuba soalan yg SAMA sampai
+    // dia sendiri jumpa jawapan tepat (lihat retryTembakRound() di bawah).
+    setNova('Belum tepat. Cuba lagi!');
     els.bannerLabel.textContent = 'BUKAN SASARAN';
   }
   updateHUD();
@@ -760,6 +775,7 @@ function resolveShot(hitDrone) {
 
   setTimeout(() => {
     drones = [];
+    if (!hitDrone.correct) { retryTembakRound(); return; } // soalan sama diulang
     if (remainingPool().length === 0) showVictory(); else nextRound();
   }, CONFIG.GAME.feedbackDelayMs);
 }
